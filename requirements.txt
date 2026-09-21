@@ -1,0 +1,6 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+assemblyai>=1.5.5
+groq>=0.13
+httpx>=0.27
+python-dotenv>=1.0

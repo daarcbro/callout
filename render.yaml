@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: callout
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: qwen/qwen3.8-27b
+      - key: STT_MODEL
+        value: universal-3-5-pro
+      - key: STT_MODE
+        value: balanced
+      - key: TTS_PROVIDER
+        value: browser
+      - key: PYTHON_VERSION
+        value: "3.11.9"

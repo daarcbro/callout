@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Callout — Real-Time Voice Translation for Gaming Squads</title>
+<meta name="description" content="Break every language barrier in gaming. Speak your language, your squad hears theirs — translated instantly with AI.">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg-deepest: #06060b;
+  --bg-base: #0a0a12;
+  --bg-raised: #10111a;
+  --bg-surface: #161722;
+  --bg-surface-2: #1c1d2e;
+  --bg-glass: rgba(16, 17, 26, 0.72);
+  --bg-glass-2: rgba(22, 23, 34, 0.65);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(99, 102, 241, 0.4);
+  --text-primary: #eaeaf0;
+  --text-secondary: #8b8ca3;
+  --text-muted: #5a5b72;
+  --text-faint: #3d3e52;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-glow: rgba(99, 102, 241, 0.25);
+  --accent-glow-strong: rgba(99, 102, 241, 0.5);
+  --cyan: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.2);
+  --emerald: #10b981;
+  --emerald-glow: rgba(16, 185, 129, 0.15);
+  --rose: #f43f5e;
+  --rose-glow: rgba(244, 63, 94, 0.15);
+  --amber: #f59e0b;
+  --amber-glow: rgba(245, 158, 11, 0.15);
+  --font: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 60px rgba(99, 102, 241, 0.15);
+  /* player colors — muted neon-ish */
+  --p0: #6ea8d7; --p1: #c48db8; --p2: #9b96cc;
+  --p3: #c4a36d; --p4: #7db87d; --p5: #6da4b8;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+html, body { height: 100%; }
+body {
+  background: var(--bg-deepest);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+a { color: var(--accent-light); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============================================================
+   ANIMATED BACKGROUND
+   ============================================================ */
+.bg-effects {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-effects .orb {
+  position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.35;
+  animation: orbit 20s ease-in-out infinite;
+}
+.bg-effects .orb-1 {
+  width: 600px; height: 600px; top: -10%; left: -10%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  animation-duration: 25s;
+}
+.bg-effects .orb-2 {
+  width: 500px; height: 500px; bottom: -15%; right: -10%;
+  background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+  animation-duration: 30s; animation-delay: -5s;
+}
+.bg-effects .orb-3 {
+  width: 400px; height: 400px; top: 40%; left: 50%;
+  background: radial-gradient(circle, #a855f7 0%, transparent 70%);
+  animation-duration: 22s; animation-delay: -10s; opacity: 0.2;
+}
+.bg-effects .grid-overlay {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+@keyframes orbit {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(60px, -40px) scale(1.1); }
+  50% { transform: translate(-30px, 50px) scale(0.95); }
+  75% { transform: translate(40px, 30px) scale(1.05); }
+}
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; border-radius: var(--radius-sm); cursor: pointer;
+  font-weight: 600; font-size: 14px;
+  padding: 12px 24px;
+  transition: all 0.2s ease;
+  position: relative; overflow: hidden;
+}
+.btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.btn:hover::before { opacity: 1; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn:disabled::before { display: none; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #4f46e5);
+  color: #fff;
+  box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.btn-primary:hover { box-shadow: 0 6px 24px var(--accent-glow-strong), inset 0 1px 0 rgba(255,255,255,0.15); }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-hover);
+  color: var(--text-primary);
+}
+.btn-outline:hover { border-color: var(--text-muted); background: rgba(255,255,255,0.03); }
+
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+.btn-full { width: 100%; }
+
+.glass-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   LANDING / LOBBY
+   ============================================================ */
+#lobby {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative; z-index: 1;
+}
+
+/* --- Nav --- */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px;
+  position: relative; z-index: 2;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 800; font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.nav-brand .logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; color: #fff;
+}
+.nav-links {
+  display: flex; align-items: center; gap: 32px;
+  list-style: none; font-size: 14px; font-weight: 500; color: var(--text-secondary);
+}
+.nav-links a { color: inherit; transition: color 0.15s; }
+.nav-links a:hover { color: var(--text-primary); text-decoration: none; }
+
+/* --- Hero --- */
+.hero {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px 80px;
+  position: relative; z-index: 1;
+}
+.hero-inner {
+  display: grid; grid-template-columns: 1fr 440px; gap: 80px;
+  max-width: 1100px; width: 100%; align-items: center;
+}
+.hero-content { max-width: 560px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 100px;
+  font-size: 12px; font-weight: 600; color: var(--accent-light);
+  margin-bottom: 24px;
+  letter-spacing: 0.02em;
+}
+.hero-badge .pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-light);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-glow-strong); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
+}
+.hero h1 {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent-light), var(--cyan), #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-desc {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  max-width: 460px;
+}
+.hero-stats {
+  display: flex; gap: 40px; margin-top: 40px;
+}
+.hero-stat .value {
+  font-size: 28px; font-weight: 800; color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.hero-stat .label {
+  font-size: 13px; color: var(--text-muted); margin-top: 2px;
+}
+
+/* --- Connect Card (right side of hero) --- */
+.connect-card {
+  padding: 32px;
+  position: relative;
+}
+.connect-card::before {
+  content: ''; position: absolute; inset: -1px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.3), transparent 50%, rgba(6,182,212,0.2));
+  border-radius: var(--radius-lg); z-index: -1;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude; -webkit-mask-composite: xor; padding: 1px;
+}
+.connect-card h2 {
+  font-size: 20px; font-weight: 700; margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.connect-card .subtitle {
+  font-size: 14px; color: var(--text-muted); margin-bottom: 24px;
+}
+.field { display: grid; gap: 6px; margin-bottom: 16px; }
+.field label {
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.field input, .field select {
+  background: var(--bg-deepest);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  width: 100%;
+  font-size: 14px;
+  transition: all 0.2s;
+  color: var(--text-primary);
+}
+.field input:focus, .field select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.field input::placeholder { color: var(--text-faint); }
+.field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235a5b72' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.field select option { background: var(--bg-surface); }
+
+.divider {
+  display: flex; align-items: center; gap: 14px;
+  color: var(--text-faint); font-size: 12px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  margin: 20px 0;
+}
+.divider::before, .divider::after {
+  content: ""; height: 1px; flex: 1;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+.divider::after { background: linear-gradient(270deg, var(--border), transparent); }
+
+.join-row { display: flex; gap: 8px; }
+.join-row input {
+  flex: 1;
+  background: var(--bg-deepest);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--mono);
+  min-width: 0;
+  transition: all 0.2s;
+}
+.join-row input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+#lobbyMsg {
+  min-height: 1.6em; color: var(--rose);
+  font-size: 13px; margin-top: 14px;
+  font-weight: 500;
+}
+
+/* --- Features strip below hero --- */
+.features {
+  display: flex; justify-content: center; gap: 48px;
+  padding: 0 40px 60px;
+  position: relative; z-index: 1;
+}
+.feature-item {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; color: var(--text-secondary); font-weight: 500;
+}
+.feature-icon {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.feature-icon.fi-1 { background: var(--accent-glow); color: var(--accent-light); }
+.feature-icon.fi-2 { background: var(--cyan-glow); color: var(--cyan); }
+.feature-icon.fi-3 { background: var(--emerald-glow); color: var(--emerald); }
+
+/* ============================================================
+   ROOM VIEW
+   ============================================================ */
+#room {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto 1fr;
+  position: relative; z-index: 1;
+}
+
+/* --- Top Bar --- */
+.topbar {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 24px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+.topbar-brand {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 16px; margin-right: 8px;
+}
+.topbar-brand .logo-icon {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 900; color: #fff;
+}
+.room-code {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  padding: 4px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.topbar-actions {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.status {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--text-muted);
+  font-weight: 500;
+}
+.status .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-faint);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.status.ok .dot { background: var(--emerald); box-shadow: 0 0 8px var(--emerald-glow); }
+.status.bad .dot { background: var(--rose); box-shadow: 0 0 8px var(--rose-glow); }
+
+/* --- Main Column --- */
+.main-col {
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--bg-base);
+}
+
+/* Stage — big translated callout */
+.stage {
+  padding: 36px 28px 28px;
+  min-height: 200px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.stage::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, var(--accent-glow) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.6s;
+  pointer-events: none;
+}
+.stage.active::before { opacity: 1; }
+.stage .who {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-secondary);
+  font-weight: 500; min-height: 22px;
+}
+.swatch {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; background: var(--text-faint);
+  transition: box-shadow 0.3s;
+}
+.stage .big {
+  font-weight: 800;
+  font-size: clamp(28px, 5vw, 52px);
+  line-height: 1.12;
+  margin: 10px 0 8px;
+  overflow-wrap: anywhere;
+  letter-spacing: -0.02em;
+  animation: fadeInUp 0.3s ease;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stage .orig {
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 400;
+}
+.stage.agent .big { color: var(--amber); }
+.stage .empty {
+  color: var(--text-faint);
+  font-size: 15px;
+  max-width: 44ch;
+  line-height: 1.6;
+}
+
+/* Log */
+.log {
+  flex: 1; overflow-y: auto; padding: 8px 28px; min-height: 0;
+}
+.log::-webkit-scrollbar { width: 4px; }
+.log::-webkit-scrollbar-track { background: transparent; }
+.log::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 4px; }
+
+.item {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  animation: fadeInUp 0.25s ease;
+}
+.item .swatch { margin-top: 7px; }
+.item .t { font-weight: 600; font-size: 15px; }
+.item .o { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+.item.agent .t { color: var(--amber); }
+.item.err .t { color: var(--rose); font-weight: 500; font-size: 13px; }
+
+/* Live + compose */
+.live {
+  padding: 8px 28px;
+  min-height: 28px;
+  color: var(--text-faint);
+  font-size: 13px;
+  background: var(--bg-raised);
+  font-weight: 500;
+}
+.compose {
+  display: flex; gap: 8px;
+  padding: 12px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+.compose input {
+  flex: 1;
+  background: var(--bg-deepest);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.compose input::placeholder { color: var(--text-faint); }
+.compose input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.side {
+  display: flex; flex-direction: column; gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--bg-raised);
+  border-left: 1px solid var(--border);
+}
+.side::-webkit-scrollbar { width: 4px; }
+.side::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 4px; }
+
+.side-section {}
+.side-section h3 {
+  font-size: 11px; font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+.roster { list-style: none; display: grid; gap: 4px; }
+.roster li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500;
+  transition: background 0.2s;
+}
+.roster li:hover { background: var(--bg-surface); }
+.roster li.talking .swatch {
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 12px var(--accent-glow);
+}
+.roster .lang {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 6px;
+  background: var(--bg-surface);
+  border-radius: 4px;
+}
+
+/* Mic meter */
+.meter {
+  height: 4px; border-radius: 4px;
+  background: var(--bg-surface-2);
+  overflow: hidden;
+}
+.meter i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--accent), var(--cyan));
+  transition: width 60ms linear;
+  border-radius: 4px;
+}
+.checks { display: grid; gap: 8px; margin-top: 10px; font-size: 13px; }
+.checks label {
+  display: flex; gap: 8px; align-items: center;
+  cursor: pointer; color: var(--text-secondary);
+  font-weight: 500;
+}
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 15px; height: 15px;
+  cursor: pointer;
+}
+.hint {
+  color: var(--text-faint);
+  font-size: 12px; line-height: 1.5;
+}
+.hint b { color: var(--text-secondary); font-weight: 600; }
+.heard {
+  color: var(--text-faint);
+  font-size: 13px;
+  margin-top: 6px;
+  min-height: 1.4em;
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    max-width: 480px;
+  }
+  .hero-content { text-align: center; margin: 0 auto; }
+  .hero-desc { margin: 0 auto 32px; }
+  .hero-stats { justify-content: center; }
+  .nav { padding: 16px 20px; }
+  .nav-links { display: none; }
+  .features { flex-direction: column; align-items: center; gap: 20px; padding-bottom: 40px; }
+}
+@media (max-width: 700px) {
+  #room { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .side {
+    max-height: 40vh;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meter i { transition: none; }
+  .bg-effects .orb { animation: none; }
+  .stage .big { animation: none; }
+  .item { animation: none; }
+}
+
+/* ============================================================
+   PAGE TRANSITION
+   ============================================================ */
+.view-enter { animation: viewIn 0.4s ease forwards; }
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-effects" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<!-- ===== LOBBY / LANDING ===== -->
+<main id="lobby">
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="logo-icon">C</div>
+      <span>Callout</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="https://github.com" target="_blank">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse"></span>
+          Live AI Translation
+        </div>
+        <h1>
+          Break Every<br>
+          <span class="gradient-text">Language Barrier</span><br>
+          in Gaming
+        </h1>
+        <p class="hero-desc">
+          Speak your language. Your squad hears theirs — translated instantly
+          with AI-powered voice recognition and real-time translation.
+        </p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="value">10+</div>
+            <div class="label">Languages</div>
+          </div>
+          <div class="hero-stat">
+            <div class="value">&lt;1s</div>
+            <div class="label">Latency</div>
+          </div>
+          <div class="hero-stat">
+            <div class="value">6</div>
+            <div class="label">Max Squad</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connect Card -->
+      <div class="connect-card glass-card">
+        <h2>Get Started</h2>
+        <p class="subtitle">Create a room or join your squad</p>
+
+        <div class="field">
+          <label for="name">Callsign</label>
+          <input id="name" maxlength="20" placeholder="Your name" autocomplete="nickname">
+        </div>
+        <div class="field">
+          <label for="listen">Hear Callouts In</label>
+          <select id="listen"></select>
+        </div>
+        <button class="btn btn-primary btn-full" id="create">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Create Room
+        </button>
+
+        <div class="divider">or join existing</div>
+
+        <div class="join-row">
+          <input id="code" maxlength="8" placeholder="ROOM CODE" aria-label="Room code" autocomplete="off">
+          <button class="btn btn-outline btn-sm" id="join">Join</button>
+        </div>
+        <div id="lobbyMsg" role="alert"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features strip -->
+  <div class="features" id="features">
+    <div class="feature-item">
+      <div class="feature-icon fi-1">🎙️</div>
+      <span>AI Speech Recognition</span>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon fi-2">🌐</div>
+      <span>Real-Time Translation</span>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon fi-3">🔊</div>
+      <span>Voice Playback</span>
+    </div>
+  </div>
+</main>
+
+<!-- ===== ROOM ===== -->
+<main id="room" hidden>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="logo-icon">C</div>
+      <span>Callout</span>
+    </div>
+    <span class="room-code" id="roomCode"></span>
+    <div class="topbar-actions">
+      <button class="btn btn-outline btn-sm" id="copyLink">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Copy Link
+      </button>
+      <span class="status" id="status">
+        <span class="dot"></span>
+        <span id="statusText">Connecting</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <section class="main-col">
+    <div class="stage" id="stage">
+      <div class="who" id="who"></div>
+      <div class="big" id="big"></div>
+      <div class="orig" id="orig"></div>
+      <div class="empty" id="empty">Waiting for the first callout. Speak into your mic or type below.</div>
+    </div>
+    <div class="log" id="log" aria-live="polite"></div>
+    <div class="live" id="live"></div>
+    <form class="compose" id="compose" autocomplete="off">
+      <input id="typed" placeholder="Type something to translate…" aria-label="Type a test line">
+      <button class="btn btn-primary btn-sm" type="submit">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Send
+      </button>
+    </form>
+  </section>
+
+  <!-- Sidebar -->
+  <aside class="side">
+    <div class="side-section">
+      <h3>Squad</h3>
+      <ul class="roster" id="roster"></ul>
+    </div>
+    <div class="side-section">
+      <h3>Your Language</h3>
+      <div class="field"><select id="listenLive" aria-label="Language you hear"></select></div>
+    </div>
+    <div class="side-section">
+      <h3>Microphone</h3>
+      <div class="meter" aria-hidden="true"><i id="level"></i></div>
+      <div class="checks">
+        <label><input type="checkbox" id="muteMic"> Mute mic</label>
+        <label><input type="checkbox" id="voiceOn" checked> Play callouts aloud</label>
+      </div>
+      <div class="heard" id="heard"></div>
+    </div>
+    <div class="side-section">
+      <h3>Voice Commands</h3>
+      <p class="hint">Say <b>"Agent, repeat"</b> to replay the last callout, or <b>"Agent, summary"</b> for a tactical recap.</p>
+    </div>
+    <p class="hint">💡 Tip: Use headphones so speakers don't feed back into the mic.</p>
+    <button class="btn btn-outline btn-sm" id="leave" style="margin-top: auto;">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 2H3.5A1.5 1.5 0 002 3.5v9A1.5 1.5 0 003.5 14H6M11 11l3-3-3-3M14 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Leave Room
+    </button>
+  </aside>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const BCP = { en: "en-US", hi: "hi-IN", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", it: "it-IT", ja: "ja-JP", ar: "ar-SA", tr: "tr-TR" };
+const HUES = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)", "var(--p5)"];
+const state = {
+  ws: null, me: null, roster: [], langs: {}, tts: "browser", mic: null, ctx: null,
+  playCtx: null, nextPlay: 0, leftover: null, hasCurrent: false, muted: false,
+};
+
+/* ---------- lobby ---------- */
+const listenSel = $("#listen"), listenLive = $("#listenLive");
+const FALLBACK_LANGS = { en: "English", hi: "Hindi", es: "Spanish", fr: "French", de: "German", pt: "Portuguese", it: "Italian", ja: "Japanese", ar: "Arabic", tr: "Turkish" };
+function fillLangs(sel, langs, value) {
+  sel.innerHTML = "";
+  for (const [c, n] of Object.entries(langs)) sel.add(new Option(n, c));
+  sel.value = value || "en";
+}
+fillLangs(listenSel, FALLBACK_LANGS, localStorage.getItem("listen"));
+$("#name").value = localStorage.getItem("name") || "";
+const urlRoom = new URLSearchParams(location.search).get("room");
+if (urlRoom) $("#code").value = urlRoom.toUpperCase();
+
+$("#create").onclick = () => enter("create");
+$("#join").onclick = () => enter("join");
+$("#code").addEventListener("keydown", (e) => { if (e.key === "Enter") enter("join"); });
+
+function lobbyMsg(t) { $("#lobbyMsg").textContent = t || ""; }
+
+async function enter(mode) {
+  const name = $("#name").value.trim() || "Player";
+  const code = $("#code").value.trim();
+  if (mode === "join" && !code) { lobbyMsg("Enter the room code."); $("#code").focus(); return; }
+  localStorage.setItem("name", name); localStorage.setItem("listen", listenSel.value);
+  lobbyMsg("");
+  $("#create").disabled = $("#join").disabled = true;
+
+  // Audio contexts must be created from a click.
+  state.playCtx = new (window.AudioContext || window.webkitAudioContext)();
+  state.playCtx.resume();
+  try {
+    await startMic();
+  } catch (err) {
+    $("#create").disabled = $("#join").disabled = false;
+    lobbyMsg(micErrorText(err));
+    return;
+  }
+  openSocket(mode, name, code);
+}
+
+function micErrorText(err) {
+  if (!window.isSecureContext) return "Microphones only work on https or localhost. Open the app at http://localhost:8000.";
+  if (err && err.name === "NotAllowedError") return "Mic access was blocked. Allow the microphone in your browser settings.";
+  if (err && err.name === "NotFoundError") return "No microphone found. Plug one in and try again.";
+  return "Couldn't start the microphone: " + (err && err.message ? err.message : err);
+}
+
+/* ---------- mic capture: any sample rate -> 16 kHz mono PCM16, 100 ms chunks ---------- */
+const WORKLET = `
+class PCM extends AudioWorkletProcessor {
+  constructor() { super(); this.ratio = sampleRate / 16000; this.carry = new Float32Array(0); this.t = 0; this.out = new Int16Array(1600); this.n = 0; }
+  process(inputs) {
+    const ch = inputs[0] && inputs[0][0];
+    if (!ch) return true;
+    const data = new Float32Array(this.carry.length + ch.length);
+    data.set(this.carry, 0); data.set(ch, this.carry.length);
+    let t = this.t;
+    while (t + 1 < data.length) {
+      const i = Math.floor(t), f = t - i;
+      let s = data[i] * (1 - f) + data[i + 1] * f;
+      s = Math.max(-1, Math.min(1, s));
+      this.out[this.n++] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      if (this.n === 1600) { const buf = this.out.buffer; this.port.postMessage(buf, [buf]); this.out = new Int16Array(1600); this.n = 0; }
+      t += this.ratio;
+    }
+    const used = Math.floor(t);
+    this.carry = data.slice(used); this.t = t - used;
+    return true;
+  }
+}
+registerProcessor("pcm-16k", PCM);`;
+
+async function startMic() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+  });
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET], { type: "application/javascript" })));
+  const src = ctx.createMediaStreamSource(stream);
+  const node = new AudioWorkletNode(ctx, "pcm-16k");
+  const analyser = ctx.createAnalyser(); analyser.fftSize = 512;
+  src.connect(node); src.connect(analyser);
+  node.port.onmessage = (e) => {
+    if (state.muted || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+    state.ws.send(e.data);
+  };
+  state.mic = { stream, ctx, node, analyser };
+  const buf = new Uint8Array(analyser.fftSize);
+  (function draw() {
+    if (!state.mic) return;
+    analyser.getByteTimeDomainData(buf);
+    let peak = 0; for (const v of buf) peak = Math.max(peak, Math.abs(v - 128));
+    $("#level").style.width = state.muted ? "0%" : Math.min(100, (peak / 128) * 160) + "%";
+    requestAnimationFrame(draw);
+  })();
+}
+
+function stopMic() {
+  if (!state.mic) return;
+  state.mic.stream.getTracks().forEach((t) => t.stop());
+  state.mic.ctx.close();
+  state.mic = null;
+}
+
+/* ---------- socket ---------- */
+function openSocket(mode, name, code) {
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  const qs = new URLSearchParams({ mode, name, listen: listenSel.value, room: code });
+  const ws = new WebSocket(`${proto}://${location.host}/ws?${qs}`);
+  ws.binaryType = "arraybuffer";
+  state.ws = ws;
+  ws.onmessage = (e) => (typeof e.data === "string" ? onMessage(JSON.parse(e.data)) : playPCM(e.data));
+  ws.onclose = () => {
+    if (!$("#room").hidden) backToLobby("Connection lost. Create or join a room to continue.");
+    else if (!$("#lobbyMsg").textContent) backToLobby("Couldn't reach the server. Is it running?");
+  };
+}
+
+function onMessage(m) {
+  switch (m.type) {
+    case "fatal": backToLobby(m.message); break;
+    case "hello": onHello(m); break;
+    case "roster": state.roster = m.players; renderRoster(); break;
+    case "activity": flashTalking(m.id); break;
+    case "partial": $("#live").textContent = "You: " + m.text; break;
+    case "final":
+      $("#live").textContent = "";
+      $("#heard").textContent = "Heard: " + m.text + (m.lang ? "  (" + m.lang + ")" : "");
+      break;
+    case "callout": showCallout(m); break;
+    case "agent": showAgent(m); break;
+    case "speak": speak(m.text, m.lang); break;
+    case "status": if (m.text) setStatus(m.text, m.stt === false ? "bad" : ""); if (m.stt) setStatus("Listening", "ok"); break;
+    case "error": addError(m.message); if (m.where === "stt") setStatus("STT offline", "bad"); break;
+  }
+}
+
+function onHello(m) {
+  state.me = m.you; state.tts = m.tts; state.langs = m.langs;
+  fillLangs(listenLive, m.langs, listenSel.value);
+  $("#lobby").hidden = true;
+  $("#room").hidden = false;
+  $("#room").classList.add("view-enter");
+  $("#roomCode").textContent = m.room;
+  history.replaceState(null, "", "?room=" + m.room);
+  setStatus(m.stt ? "Listening" : "STT offline", m.stt ? "ok" : "bad");
+  showEmpty(true);
+}
+
+listenLive.onchange = () => state.ws.send(JSON.stringify({ type: "set_listen", lang: listenLive.value }));
+$("#compose").onsubmit = (e) => {
+  e.preventDefault();
+  const v = $("#typed").value.trim();
+  if (v && state.ws) state.ws.send(JSON.stringify({ type: "text", text: v }));
+  $("#typed").value = "";
+};
+$("#muteMic").onchange = (e) => { state.muted = e.target.checked; };
+$("#copyLink").onclick = async () => {
+  const url = location.origin + "/?room=" + $("#roomCode").textContent;
+  try { await navigator.clipboard.writeText(url); $("#copyLink").innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!'; }
+  catch { $("#copyLink").textContent = url; }
+  setTimeout(() => { $("#copyLink").innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5"/></svg> Copy Link'; }, 2000);
+};
+$("#leave").onclick = () => backToLobby("");
+
+function backToLobby(msg) {
+  if (state.ws) { state.ws.onclose = null; try { state.ws.close(); } catch {} }
+  state.ws = null; stopMic();
+  if (state.playCtx) { state.playCtx.close(); state.playCtx = null; }
+  speechSynthesis.cancel();
+  $("#room").hidden = true; $("#room").classList.remove("view-enter");
+  $("#lobby").hidden = false;
+  $("#create").disabled = $("#join").disabled = false;
+  $("#log").innerHTML = ""; $("#muteMic").checked = false; state.muted = false;
+  state.hasCurrent = false; state.roster = [];
+  history.replaceState(null, "", location.pathname);
+  lobbyMsg(msg);
+}
+
+/* ---------- rendering ---------- */
+function setStatus(text, kind) {
+  $("#statusText").textContent = text;
+  $("#status").className = "status " + (kind || "");
+}
+function color(i) { return HUES[(i ?? 0) % HUES.length]; }
+
+function renderRoster() {
+  const ul = $("#roster"); ul.innerHTML = "";
+  for (const p of state.roster) {
+    const li = document.createElement("li"); li.dataset.id = p.id;
+    const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = color(p.color);
+    const nm = document.createElement("span"); nm.textContent = p.name + (p.id === state.me ? " (you)" : "");
+    const lg = document.createElement("span"); lg.className = "lang"; lg.textContent = state.langs[p.listen] || p.listen;
+    li.append(sw, nm, lg); ul.append(li);
+  }
+}
+const talkTimers = {};
+function flashTalking(id) {
+  const li = document.querySelector(`#roster li[data-id="${id}"]`);
+  if (!li) return;
+  li.classList.add("talking");
+  clearTimeout(talkTimers[id]);
+  talkTimers[id] = setTimeout(() => li.classList.remove("talking"), 900);
+}
+
+function showEmpty(on) {
+  $("#empty").hidden = !on;
+  if (on) { $("#who").innerHTML = ""; $("#big").textContent = ""; $("#orig").textContent = ""; }
+}
+
+function pushToLog() {
+  if (!state.hasCurrent) return;
+  const cur = state.current;
+  $("#log").prepend(logItem(cur));
+  while ($("#log").children.length > 60) $("#log").lastChild.remove();
+}
+function logItem(c) {
+  const d = document.createElement("div"); d.className = "item" + (c.kind ? " " + c.kind : "");
+  const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = c.kind === "agent" ? "var(--amber)" : color(c.color);
+  const box = document.createElement("div");
+  const t = document.createElement("div"); t.className = "t"; t.textContent = c.text;
+  box.append(t);
+  if (c.sub) { const o = document.createElement("div"); o.className = "o"; o.textContent = c.sub; box.append(o); }
+  d.append(sw, box); return d;
+}
+
+function present(c) {
+  pushToLog();
+  state.current = c; state.hasCurrent = true;
+  showEmpty(false);
+  const stageEl = $("#stage");
+  stageEl.className = "stage active" + (c.kind === "agent" ? " agent" : "");
+  const who = $("#who"); who.innerHTML = "";
+  const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = c.kind === "agent" ? "var(--amber)" : color(c.color);
+  const lb = document.createElement("span"); lb.textContent = c.who; who.append(sw, lb);
+  const big = $("#big"); big.textContent = c.text;
+  // Re-trigger animation
+  big.style.animation = 'none';
+  big.offsetHeight; // reflow
+  big.style.animation = '';
+  $("#orig").textContent = c.sub || "";
+}
+
+function showCallout(m) {
+  present({ text: m.translated, sub: m.original, color: m.color, who: m.solo ? "You (solo test)" : m.from, kind: "" });
+}
+function showAgent(m) { present({ text: m.text, sub: "", who: "Agent: " + m.label, kind: "agent" }); }
+function addError(msg) {
+  const d = logItem({ text: msg, kind: "err", color: 0 });
+  d.querySelector(".swatch").style.background = "var(--rose)";
+  $("#log").prepend(d);
+}
+
+/* ---------- voice out ---------- */
+function speak(text, lang) {
+  if (!$("#voiceOn").checked) return;
+  if (speechSynthesis.pending) speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = BCP[lang] || "en-US"; u.rate = 1.12;
+  speechSynthesis.speak(u);
+}
+
+// PCM16 @ 16 kHz frames from the server (ElevenLabs mode)
+function playPCM(arrayBuf) {
+  if (!state.playCtx || !$("#voiceOn").checked) return;
+  let bytes = new Uint8Array(arrayBuf);
+  if (state.leftover) { const j = new Uint8Array(state.leftover.length + bytes.length); j.set(state.leftover); j.set(bytes, state.leftover.length); bytes = j; state.leftover = null; }
+  if (bytes.length % 2) { state.leftover = bytes.slice(-1); bytes = bytes.slice(0, -1); }
+  if (!bytes.length) return;
+  const i16 = new Int16Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length));
+  const f32 = new Float32Array(i16.length);
+  for (let i = 0; i < i16.length; i++) f32[i] = i16[i] / 32768;
+  const ab = state.playCtx.createBuffer(1, f32.length, 16000);
+  ab.copyToChannel(f32, 0);
+  const s = state.playCtx.createBufferSource(); s.buffer = ab; s.connect(state.playCtx.destination);
+  const at = Math.max(state.playCtx.currentTime + 0.04, state.nextPlay);
+  s.start(at); state.nextPlay = at + ab.duration;
+}
+</script>
+</body>
+</html>
