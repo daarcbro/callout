@@ -178,9 +178,6 @@ a:hover { text-decoration: underline; }
    LANDING / LOBBY
    ============================================================ */
 #lobby {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   position: relative; z-index: 1;
 }
 
@@ -211,16 +208,19 @@ a:hover { text-decoration: underline; }
 
 /* --- Hero --- */
 .hero {
-  flex: 1;
+  min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 40px 20px 80px;
+  padding: 120px 20px 60px;
   position: relative; z-index: 1;
+  text-align: center;
 }
 .hero-inner {
-  display: grid; grid-template-columns: 1fr 440px; gap: 80px;
-  max-width: 1100px; width: 100%; align-items: center;
+  max-width: 800px; width: 100%;
 }
-.hero-content { max-width: 560px; }
+.hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
 .hero-badge {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 14px;
@@ -258,10 +258,20 @@ a:hover { text-decoration: underline; }
   line-height: 1.7;
   color: var(--text-secondary);
   margin-bottom: 32px;
-  max-width: 460px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-tagline {
+  font-size: clamp(18px, 2.5vw, 22px);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
 }
 .hero-stats {
   display: flex; gap: 40px; margin-top: 40px;
+  justify-content: center;
 }
 .hero-stat .value {
   font-size: 28px; font-weight: 800; color: var(--text-primary);
@@ -271,10 +281,64 @@ a:hover { text-decoration: underline; }
   font-size: 13px; color: var(--text-muted); margin-top: 2px;
 }
 
-/* --- Connect Card (right side of hero) --- */
-.connect-card {
-  padding: 32px;
+/* --- Scroll Indicator --- */
+.scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+.scroll-hint .arrow {
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid var(--text-faint);
+  border-bottom: 2px solid var(--text-faint);
+  transform: rotate(45deg);
+  margin-top: -4px;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+  50% { transform: translateX(-50%) translateY(8px); opacity: 0.5; }
+}
+
+/* --- Scroll Sections --- */
+.scroll-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
   position: relative;
+  z-index: 1;
+}
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Connect Card --- */
+.connect-card {
+  padding: 36px;
+  position: relative;
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
 }
 .connect-card::before {
   content: ''; position: absolute; inset: -1px;
@@ -361,8 +425,17 @@ a:hover { text-decoration: underline; }
 /* --- Features strip below hero --- */
 .features {
   display: flex; justify-content: center; gap: 48px;
-  padding: 0 40px 60px;
+  padding: 0 40px 40px;
   position: relative; z-index: 1;
+  flex-wrap: wrap;
+}
+.features-section {
+  padding: 40px 20px 80px;
+  position: relative;
+  z-index: 1;
+}
+.features-section .hero-stats {
+  margin-bottom: 60px;
 }
 .feature-item {
   display: flex; align-items: center; gap: 12px;
@@ -630,20 +703,15 @@ input[type="checkbox"] {
    ============================================================ */
 
 /* -- Staggered hero entrance -- */
-.hero-badge, .hero h1, .hero-desc, .hero-stats,
-.connect-card, .feature-item {
+.hero-badge, .hero h1, .hero-tagline, .hero-desc {
   opacity: 0;
   transform: translateY(22px);
   animation: heroEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .hero-badge       { animation-delay: 0.1s; }
 .hero h1          { animation-delay: 0.28s; }
-.hero-desc        { animation-delay: 0.45s; }
-.hero-stats       { animation-delay: 0.6s; }
-.connect-card     { animation-delay: 0.35s; transform: translateY(32px); }
-.feature-item:nth-child(1) { animation-delay: 0.75s; }
-.feature-item:nth-child(2) { animation-delay: 0.9s; }
-.feature-item:nth-child(3) { animation-delay: 1.05s; }
+.hero-tagline     { animation-delay: 0.45s; }
+.hero-desc        { animation-delay: 0.6s; }
 
 @keyframes heroEntrance {
   to { opacity: 1; transform: translateY(0); }
@@ -709,7 +777,7 @@ input[type="checkbox"] {
 /* -- Enhanced input focus -- */
 .field input:focus, .field select:focus, .join-row input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(99, 102, 241, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(218, 155, 55, 0.12);
   transform: scale(1.01);
   transition: all 0.2s ease;
 }
@@ -766,8 +834,6 @@ input[type="checkbox"] {
    ============================================================ */
 @media (max-width: 900px) {
   .hero-inner {
-    grid-template-columns: 1fr;
-    gap: 40px;
     max-width: 480px;
   }
   .hero-content { text-align: center; margin: 0 auto; }
@@ -776,6 +842,7 @@ input[type="checkbox"] {
   .nav { padding: 16px 20px; }
   .nav-links { display: none; }
   .features { flex-direction: column; align-items: center; gap: 20px; padding-bottom: 40px; }
+  .connect-card { max-width: 400px; }
 }
 @media (max-width: 700px) {
   #room { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
@@ -790,11 +857,11 @@ input[type="checkbox"] {
   .bg-effects .orb { animation: none; }
   .stage .big { animation: none; }
   .item { animation: none; }
-  .hero-badge, .hero h1, .hero-desc, .hero-stats,
-  .connect-card, .feature-item { animation: none; opacity: 1; transform: none; }
+  .hero-badge, .hero h1, .hero-tagline, .hero-desc { animation: none; opacity: 1; transform: none; }
   .hero h1 .gradient-text { animation: none; }
   .btn-primary { animation: none; }
   .roster li { animation: none; }
+  .scroll-reveal { opacity: 1; transform: none; transition: none; }
   #heroCanvas { display: none; }
 }
 
@@ -834,7 +901,7 @@ input[type="checkbox"] {
     </ul>
   </nav>
 
-  <!-- Hero -->
+  <!-- Hero - Full viewport -->
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-content">
@@ -843,31 +910,60 @@ input[type="checkbox"] {
           Live AI Translation
         </div>
         <h1>
-          Break Every<br>
-          <span class="gradient-text">Language Barrier</span><br>
-          in Gaming
+          Enhance Your<br>
+          <span class="gradient-text">Gaming</span><br>
+          Experience
         </h1>
+        <p class="hero-tagline">Break Every Language Barrier in Gaming</p>
         <p class="hero-desc">
           Speak your language. Your squad hears theirs — translated instantly
           with AI-powered voice recognition and real-time translation.
         </p>
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <div class="value">10+</div>
-            <div class="label">Languages</div>
-          </div>
-          <div class="hero-stat">
-            <div class="value">&lt;1s</div>
-            <div class="label">Latency</div>
-          </div>
-          <div class="hero-stat">
-            <div class="value">6</div>
-            <div class="label">Max Squad</div>
-          </div>
+      </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span>Scroll</span>
+      <div class="arrow"></div>
+    </div>
+  </section>
+
+  <!-- Features + Stats -->
+  <section class="features-section scroll-section">
+    <div class="scroll-reveal">
+      <div class="hero-stats" style="justify-content:center">
+        <div class="hero-stat">
+          <div class="value">10+</div>
+          <div class="label">Languages</div>
+        </div>
+        <div class="hero-stat">
+          <div class="value">&lt;1s</div>
+          <div class="label">Latency</div>
+        </div>
+        <div class="hero-stat">
+          <div class="value">6</div>
+          <div class="label">Max Squad</div>
         </div>
       </div>
+      <div class="features" id="features">
+        <div class="feature-item">
+          <div class="feature-icon fi-1">🎙️</div>
+          <span>AI Speech Recognition</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon fi-2">🌐</div>
+          <span>Real-Time Translation</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon fi-3">🔊</div>
+          <span>Voice Playback</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      <!-- Connect Card -->
+  <!-- Get Started -->
+  <section class="scroll-section" id="getStarted">
+    <div class="scroll-reveal">
       <div class="connect-card glass-card">
         <h2>Get Started</h2>
         <p class="subtitle">Create a room or join your squad</p>
@@ -895,22 +991,6 @@ input[type="checkbox"] {
       </div>
     </div>
   </section>
-
-  <!-- Features strip -->
-  <div class="features" id="features">
-    <div class="feature-item">
-      <div class="feature-icon fi-1">🎙️</div>
-      <span>AI Speech Recognition</span>
-    </div>
-    <div class="feature-item">
-      <div class="feature-icon fi-2">🌐</div>
-      <span>Real-Time Translation</span>
-    </div>
-    <div class="feature-item">
-      <div class="feature-icon fi-3">🔊</div>
-      <span>Voice Playback</span>
-    </div>
-  </div>
 </main>
 
 <!-- ===== ROOM ===== -->
@@ -1167,6 +1247,7 @@ function backToLobby(msg) {
   speechSynthesis.cancel();
   $("#room").hidden = true; $("#room").classList.remove("view-enter");
   $("#lobby").hidden = false;
+  window.scrollTo({ top: 0, behavior: 'instant' });
   if (window.heroScene) window.heroScene.resume();
   $("#create").disabled = $("#join").disabled = false;
   $("#log").innerHTML = ""; $("#muteMic").checked = false; state.muted = false;
@@ -1342,6 +1423,40 @@ function playPCM(arrayBuf) {
     if (statsRow) obs.observe(statsRow);
   } else {
     setTimeout(countUp, 1000);
+  }
+
+  /* -- Scroll-reveal sections -- */
+  if ('IntersectionObserver' in window) {
+    var revealObs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.scroll-reveal').forEach(function(el) {
+      revealObs.observe(el);
+    });
+  } else {
+    document.querySelectorAll('.scroll-reveal').forEach(function(el) {
+      el.classList.add('visible');
+    });
+  }
+
+  /* -- Hide scroll hint on scroll -- */
+  var scrollHint = document.querySelector('.scroll-hint');
+  if (scrollHint) {
+    var scrollHidden = false;
+    window.addEventListener('scroll', function() {
+      if (!scrollHidden && window.scrollY > 80) {
+        scrollHint.style.opacity = '0';
+        scrollHint.style.transition = 'opacity 0.4s ease';
+        scrollHidden = true;
+      } else if (scrollHidden && window.scrollY < 20) {
+        scrollHint.style.opacity = '';
+        scrollHidden = false;
+      }
+    }, { passive: true });
   }
 })();
 
