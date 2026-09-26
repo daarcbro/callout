@@ -64,6 +64,10 @@ LANGS = {
     "pt": "Portuguese", "it": "Italian", "ja": "Japanese", "ar": "Arabic", "tr": "Turkish",
 }
 
+# Languages whose scripts most browsers can't speak aloud.
+# For these, we transliterate to Latin (romanize) before sending to browser TTS.
+ROMANIZE_LANGS = {"hi", "ja", "ar"}
+
 # Words the speech model should be primed to hear correctly.
 KEYTERMS = [
     "one-shot", "flank", "push", "rotate", "revive", "camping", "catwalk", "diff",
@@ -235,6 +239,45 @@ async def summarize(entries: list, target: str) -> str:
         timeout=8,
     )
     return (resp.choices[0].message.content or "").strip()
+
+
+async def romanize(text: str, source_lang: str) -> str:
+    """Transliterate non-Latin text into phonetic Latin script for browser TTS."""
+    cache_key = (text, f"_romanize_{source_lang}")
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+    lang_name = LANGS.get(source_lang, source_lang)
+    system = (
+        f"You are a transliteration engine. Convert the following {lang_name} text "
+        f"into phonetic Latin/Roman script so an English text-to-speech engine can "
+        f"pronounce it naturally and be understood by a {lang_name} speaker.\n"
+        f"Rules:\n"
+        f"1. Output ONLY the romanized text. No translations, explanations, or quotes.\n"
+        f"2. Use intuitive English-friendly spelling (e.g. 'sh' not 'ś', 'ch' not 'c̄').\n"
+        f"3. Keep English loanwords and gaming terms as-is (push, one-shot, revive, etc).\n"
+        f"4. Keep it short — same length as the input."
+    )
+    try:
+        resp = await asyncio.wait_for(
+            groq_client.chat.completions.create(
+                model=GROQ_MODEL, messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": text},
+                ], temperature=0.1, max_tokens=80
+            ),
+            timeout=6,
+        )
+    except Exception as e:  # noqa: BLE001
+        log.warning("Romanization failed for %s: %r", source_lang, e)
+        return text  # fallback: send the original text
+    out = (resp.choices[0].message.content or "").strip()
+    out = out.splitlines()[0].strip().strip("\"'“”") if out else text
+    if not out:
+        return text
+    _cache_set(cache_key, out)
+    log.info("Romanized [%s]: %s -> %s", source_lang, text, out)
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -563,6 +606,18 @@ async def run_agent(player: Player, command: str) -> None:
         await reply("Try: agent repeat, or agent summary.", "Agent", speak=False)
 
 
+async def _browser_speak(player: Player, text: str) -> None:
+    """Send text to the browser for speech synthesis, romanizing if needed."""
+    speak_text, speak_lang = text, player.listen
+    if player.listen in ROMANIZE_LANGS:
+        try:
+            speak_text = await romanize(text, player.listen)
+            speak_lang = "en"  # English voice can pronounce the romanized text
+        except Exception:  # noqa: BLE001
+            pass  # worst case: send original text with original lang
+    await player.send({"type": "speak", "text": speak_text, "lang": speak_lang})
+
+
 async def tts_worker(player: Player) -> None:
     """Speak queued text to one player, one item at a time."""
     while True:
@@ -574,11 +629,11 @@ async def tts_worker(player: Player) -> None:
                     sent_audio = True
                     await player.send_bytes(chunk)
             else:
-                await player.send({"type": "speak", "text": text, "lang": player.listen})
+                await _browser_speak(player, text)
         except Exception as e:  # noqa: BLE001
             log.warning("[%s] TTS failed: %r", player.name, e)
             if not sent_audio:  # fall back to the browser voice so the callout is still heard
-                await player.send({"type": "speak", "text": text, "lang": player.listen})
+                await _browser_speak(player, text)
 
 
 # --------------------------------------------------------------------------- #
