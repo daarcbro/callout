@@ -117,6 +117,16 @@ a:hover { text-decoration: underline; }
   75% { transform: translate(40px, 30px) scale(1.05); }
 }
 
+#heroCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
 /* ============================================================
    SHARED COMPONENTS
    ============================================================ */
@@ -616,6 +626,142 @@ input[type="checkbox"] {
 }
 
 /* ============================================================
+   MICRO-ANIMATIONS & POLISH
+   ============================================================ */
+
+/* -- Staggered hero entrance -- */
+.hero-badge, .hero h1, .hero-desc, .hero-stats,
+.connect-card, .feature-item {
+  opacity: 0;
+  transform: translateY(22px);
+  animation: heroEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.hero-badge       { animation-delay: 0.1s; }
+.hero h1          { animation-delay: 0.28s; }
+.hero-desc        { animation-delay: 0.45s; }
+.hero-stats       { animation-delay: 0.6s; }
+.connect-card     { animation-delay: 0.35s; transform: translateY(32px); }
+.feature-item:nth-child(1) { animation-delay: 0.75s; }
+.feature-item:nth-child(2) { animation-delay: 0.9s; }
+.feature-item:nth-child(3) { animation-delay: 1.05s; }
+
+@keyframes heroEntrance {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* -- Gradient text shimmer -- */
+.hero h1 .gradient-text {
+  background-size: 200% auto;
+  animation: shimmer 6s ease-in-out infinite, heroEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.28s, 0.28s;
+}
+@keyframes shimmer {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+/* -- Connect card 3D tilt -- */
+.connect-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.connect-card .field, .connect-card h2,
+.connect-card .subtitle, .connect-card .btn {
+  transform: translateZ(10px);
+}
+
+/* -- Button micro-interactions -- */
+.btn-primary {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: breathe 3s ease-in-out infinite;
+  animation-delay: 2s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px var(--accent-glow-strong), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
+}
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.1); }
+  50% { box-shadow: 0 4px 24px var(--accent-glow-strong), inset 0 1px 0 rgba(255,255,255,0.1); }
+}
+
+/* -- Feature icon bounce -- */
+.feature-item {
+  transition: transform 0.3s ease;
+}
+.feature-item:hover {
+  transform: translateY(-3px);
+}
+.feature-item:hover .feature-icon {
+  animation: iconPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes iconPop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.18) rotate(-5deg); }
+  70%  { transform: scale(0.95) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* -- Enhanced input focus -- */
+.field input:focus, .field select:focus, .join-row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(99, 102, 241, 0.12);
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+}
+
+/* -- Nav link underline slide -- */
+.nav-links a {
+  position: relative;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  width: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--cyan));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.nav-links a:hover::after { width: 100%; }
+.nav-links a:hover { text-decoration: none; }
+
+/* -- Cursor spotlight -- */
+.cursor-glow {
+  position: fixed;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* -- Room code hover -- */
+.room-code {
+  transition: all 0.2s ease;
+  cursor: default;
+}
+.room-code:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-hover);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* -- Roster item enter -- */
+.roster li {
+  animation: slideIn 0.3s ease forwards;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 900px) {
@@ -644,6 +790,12 @@ input[type="checkbox"] {
   .bg-effects .orb { animation: none; }
   .stage .big { animation: none; }
   .item { animation: none; }
+  .hero-badge, .hero h1, .hero-desc, .hero-stats,
+  .connect-card, .feature-item { animation: none; opacity: 1; transform: none; }
+  .hero h1 .gradient-text { animation: none; }
+  .btn-primary { animation: none; }
+  .roster li { animation: none; }
+  #heroCanvas { display: none; }
 }
 
 /* ============================================================
@@ -665,6 +817,8 @@ input[type="checkbox"] {
   <div class="orb orb-3"></div>
   <div class="grid-overlay"></div>
 </div>
+<canvas id="heroCanvas" aria-hidden="true"></canvas>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
 <!-- ===== LOBBY / LANDING ===== -->
 <main id="lobby">
@@ -830,6 +984,7 @@ input[type="checkbox"] {
   </aside>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const $ = (s) => document.querySelector(s);
 const BCP = { en: "en-US", hi: "hi-IN", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", it: "it-IT", ja: "ja-JP", ar: "ar-SA", tr: "tr-TR" };
@@ -982,6 +1137,7 @@ function onHello(m) {
   $("#lobby").hidden = true;
   $("#room").hidden = false;
   $("#room").classList.add("view-enter");
+  if (window.heroScene) window.heroScene.pause();
   $("#roomCode").textContent = m.room;
   history.replaceState(null, "", "?room=" + m.room);
   setStatus(m.stt ? "Listening" : "STT offline", m.stt ? "ok" : "bad");
@@ -1011,6 +1167,7 @@ function backToLobby(msg) {
   speechSynthesis.cancel();
   $("#room").hidden = true; $("#room").classList.remove("view-enter");
   $("#lobby").hidden = false;
+  if (window.heroScene) window.heroScene.resume();
   $("#create").disabled = $("#join").disabled = false;
   $("#log").innerHTML = ""; $("#muteMic").checked = false; state.muted = false;
   state.hasCurrent = false; state.roster = [];
@@ -1117,6 +1274,316 @@ function playPCM(arrayBuf) {
   const at = Math.max(state.playCtx.currentTime + 0.04, state.nextPlay);
   s.start(at); state.nextPlay = at + ab.duration;
 }
+
+/* ---------- Micro-interactions (human touch) ---------- */
+(function initMicroAnimations() {
+  /* -- Connect card 3D tilt -- */
+  const card = document.querySelector('.connect-card');
+  if (card) {
+    card.addEventListener('mousemove', function(e) {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = 'perspective(800px) rotateY(' + (x * 6) + 'deg) rotateX(' + (-y * 6) + 'deg) translateY(0)';
+    });
+    card.addEventListener('mouseleave', function() {
+      card.style.transform = 'perspective(800px) rotateY(0) rotateX(0) translateY(0)';
+      card.style.transition = 'transform 0.5s ease';
+      setTimeout(function() { card.style.transition = ''; }, 500);
+    });
+  }
+
+  /* -- Cursor spotlight glow -- */
+  const glow = document.getElementById('cursorGlow');
+  const lobby = document.getElementById('lobby');
+  if (glow && lobby) {
+    lobby.addEventListener('mousemove', function(e) {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+      glow.style.opacity = '1';
+    });
+    lobby.addEventListener('mouseleave', function() {
+      glow.style.opacity = '0';
+    });
+  }
+
+  /* -- Stat counter animation -- */
+  var statEls = document.querySelectorAll('.hero-stat .value');
+  var counted = false;
+  function countUp() {
+    if (counted) return;
+    counted = true;
+    statEls.forEach(function(el) {
+      var text = el.textContent;
+      var num = parseInt(text);
+      if (isNaN(num)) return;
+      var suffix = text.replace(String(num), '');
+      var duration = 1200;
+      var start = performance.now();
+      function step(now) {
+        var progress = Math.min(1, (now - start) / duration);
+        // ease-out cubic
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = Math.round(eased * num);
+        el.textContent = current + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      el.textContent = '0' + suffix;
+      // Start counting after the entrance animation finishes
+      setTimeout(function() { requestAnimationFrame(step); }, 700);
+    });
+  }
+  // Count when stats become visible
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) { countUp(); obs.disconnect(); }
+    }, { threshold: 0.5 });
+    var statsRow = document.querySelector('.hero-stats');
+    if (statsRow) obs.observe(statsRow);
+  } else {
+    setTimeout(countUp, 1000);
+  }
+})();
+
+/* ---------- 3D Hero Scene (Three.js) ---------- */
+(function initHero3D() {
+  if (typeof THREE === 'undefined') return;
+  const cvs = document.getElementById('heroCanvas');
+  if (!cvs) return;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 6);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: cvs, alpha: true, antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  /* Color palette */
+  const INDIGO = 0x6366f1, CYAN = 0x06b6d4, PURPLE = 0xa855f7, LIGHT = 0x818cf8;
+
+  /* ---- Globe group ---- */
+  const globeGroup = new THREE.Group();
+  globeGroup.position.set(2, 0.2, 0);
+  scene.add(globeGroup);
+
+  // Primary wireframe
+  const wireMat = new THREE.MeshBasicMaterial({ color: INDIGO, wireframe: true, transparent: true, opacity: 0.13 });
+  globeGroup.add(new THREE.Mesh(new THREE.IcosahedronGeometry(2, 3), wireMat));
+
+  // Detail wireframe layer
+  const wireMat2 = new THREE.MeshBasicMaterial({ color: CYAN, wireframe: true, transparent: true, opacity: 0.04 });
+  globeGroup.add(new THREE.Mesh(new THREE.IcosahedronGeometry(2.02, 5), wireMat2));
+
+  // Inner volume glow
+  const glowMat = new THREE.MeshBasicMaterial({ color: INDIGO, transparent: true, opacity: 0.035, side: THREE.BackSide });
+  globeGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.96, 32, 32), glowMat));
+
+  /* ---- Language connection arcs ---- */
+  function latLonToVec3(lat, lon, r) {
+    const phi = (90 - lat) * Math.PI / 180;
+    const theta = (lon + 180) * Math.PI / 180;
+    return new THREE.Vector3(
+      -r * Math.sin(phi) * Math.cos(theta),
+       r * Math.cos(phi),
+       r * Math.sin(phi) * Math.sin(theta)
+    );
+  }
+
+  // Cities for each supported language
+  const langCities = [
+    [28.6, 77.2],   // 0 Delhi       (Hindi)
+    [35.7, 139.7],  // 1 Tokyo       (Japanese)
+    [24.7, 46.7],   // 2 Riyadh      (Arabic)
+    [40.7, -74.0],  // 3 New York    (English)
+    [48.9, 2.35],   // 4 Paris       (French)
+    [52.5, 13.4],   // 5 Berlin      (German)
+    [-23.5, -46.6], // 6 São Paulo   (Portuguese)
+    [41.0, 29.0],   // 7 Istanbul    (Turkish)
+    [41.9, 12.5],   // 8 Rome        (Italian)
+    [40.4, -3.7],   // 9 Madrid      (Spanish)
+  ];
+
+  const connections = [[0,3],[1,3],[2,4],[5,3],[6,3],[7,4],[0,1],[8,9]];
+  const arcMaterials = [];
+
+  connections.forEach(function(pair) {
+    var a = pair[0], b = pair[1];
+    var start = latLonToVec3(langCities[a][0], langCities[a][1], 2);
+    var end   = latLonToVec3(langCities[b][0], langCities[b][1], 2);
+    var points = [];
+    for (var i = 0; i <= 48; i++) {
+      var t = i / 48;
+      var pt = new THREE.Vector3().lerpVectors(start, end, t);
+      pt.normalize().multiplyScalar(2 * (1 + 0.12 * Math.sin(Math.PI * t)));
+      points.push(pt);
+    }
+    var mat = new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.25 });
+    globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mat));
+    arcMaterials.push(mat);
+  });
+
+  // Glowing dots at language cities
+  var dotGeom = new THREE.SphereGeometry(0.04, 8, 8);
+  var langDots = langCities.map(function(city) {
+    var dot = new THREE.Mesh(dotGeom, new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.8 }));
+    dot.position.copy(latLonToVec3(city[0], city[1], 2));
+    globeGroup.add(dot);
+    return dot;
+  });
+
+  /* ---- Orbiting rings ---- */
+  function createRing(radius, tube, color, rx, ry, rz) {
+    var mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.15 });
+    var mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 16, 100), mat);
+    mesh.rotation.set(rx, ry, rz);
+    globeGroup.add(mesh);
+    return { mesh: mesh, mat: mat };
+  }
+  var rings = [
+    createRing(2.8, 0.008, LIGHT,   1.05,  0.2,  0),
+    createRing(3.2, 0.006, CYAN,   -0.78,  0.52, 0.3),
+    createRing(3.5, 0.005, PURPLE,  0.63, -0.95, 0.39),
+  ];
+
+  /* ---- Floating hexagons ---- */
+  function createHexagon(size, x, y, z) {
+    var verts = [];
+    for (var i = 0; i < 6; i++) {
+      var a = Math.PI / 3 * i - Math.PI / 6;
+      verts.push(new THREE.Vector3(Math.cos(a) * size, Math.sin(a) * size, 0));
+    }
+    var hex = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(verts),
+      new THREE.LineBasicMaterial({ color: LIGHT, transparent: true, opacity: 0.18 })
+    );
+    hex.position.set(x, y, z);
+    scene.add(hex);
+    return hex;
+  }
+  var hexagons = [
+    createHexagon(0.3, -2.5, 2.2, -1),
+    createHexagon(0.2,  4.5, -1.5, -2),
+    createHexagon(0.15, -3.2, -1.2, 0),
+    createHexagon(0.25, 3.8, 2.8, -1.5),
+    createHexagon(0.18, -1.8, -2.8, -0.5),
+  ];
+  var hexBaseY = hexagons.map(function(h) { return h.position.y; });
+
+  /* ---- Particle starfield ---- */
+  var isMobile = innerWidth < 768;
+  var PCOUNT = isMobile ? 300 : 700;
+  var pPos = new Float32Array(PCOUNT * 3);
+  var pCol = new Float32Array(PCOUNT * 3);
+  var palette = [new THREE.Color(INDIGO), new THREE.Color(CYAN), new THREE.Color(PURPLE), new THREE.Color(LIGHT)];
+
+  for (var i = 0; i < PCOUNT; i++) {
+    pPos[i * 3]     = (Math.random() - 0.5) * 20;
+    pPos[i * 3 + 1] = (Math.random() - 0.5) * 14;
+    pPos[i * 3 + 2] = (Math.random() - 0.5) * 10 - 2;
+    var c = palette[Math.floor(Math.random() * 4)];
+    pCol[i * 3] = c.r; pCol[i * 3 + 1] = c.g; pCol[i * 3 + 2] = c.b;
+  }
+
+  var particleGeom = new THREE.BufferGeometry();
+  particleGeom.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  particleGeom.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+  var particleMat = new THREE.PointsMaterial({
+    size: 0.025, transparent: true, opacity: 0.5,
+    vertexColors: true, sizeAttenuation: true,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  var particles = new THREE.Points(particleGeom, particleMat);
+  scene.add(particles);
+
+  /* ---- Mouse + scroll ---- */
+  var mouseX = 0, mouseY = 0, targetMX = 0, targetMY = 0, scrollTop = 0;
+  window.addEventListener('mousemove', function(e) {
+    targetMX = (e.clientX / innerWidth - 0.5) * 2;
+    targetMY = (e.clientY / innerHeight - 0.5) * 2;
+  });
+  window.addEventListener('scroll', function() { scrollTop = window.scrollY; }, { passive: true });
+
+  /* ---- Animation loop ---- */
+  var active = true, frameId;
+
+  function animate() {
+    if (!active) return;
+    frameId = requestAnimationFrame(animate);
+    var t = performance.now() * 0.001;
+
+    // Smooth mouse lerp
+    mouseX += (targetMX - mouseX) * 0.04;
+    mouseY += (targetMY - mouseY) * 0.04;
+
+    // Globe spin
+    globeGroup.children[0].rotation.y = t * 0.12;
+    globeGroup.children[0].rotation.x = Math.sin(t * 0.2) * 0.08;
+    globeGroup.children[1].rotation.y = t * 0.12;
+
+    // Ring orbits
+    rings[0].mesh.rotation.z = t * 0.18;
+    rings[1].mesh.rotation.z = -t * 0.13;
+    rings[2].mesh.rotation.x = t * 0.09 + 0.63;
+
+    // Hexagon bob + spin
+    hexagons.forEach(function(h, i) {
+      h.rotation.z = t * 0.25 + i;
+      h.position.y = hexBaseY[i] + Math.sin(t * 0.5 + i * 1.7) * 0.25;
+    });
+
+    // Language dot pulse
+    langDots.forEach(function(d, i) {
+      var pulse = Math.sin(t * 2 + i * 0.7);
+      d.scale.setScalar(1 + 0.35 * pulse);
+      d.material.opacity = 0.5 + 0.3 * pulse;
+    });
+
+    // Arc shimmer
+    arcMaterials.forEach(function(m, i) {
+      m.opacity = 0.12 + 0.18 * Math.sin(t * 1.2 + i * 0.9);
+    });
+
+    // Particle drift
+    for (var i = 0; i < PCOUNT; i++) {
+      pPos[i * 3 + 1] += Math.sin(t * 0.3 + i * 0.01) * 0.0003;
+    }
+    particleGeom.attributes.position.needsUpdate = true;
+    particles.rotation.y = t * 0.015;
+
+    // Mouse parallax on scene
+    scene.rotation.y = mouseX * 0.12;
+    scene.rotation.x = -mouseY * 0.08;
+
+    // Scroll-driven fade + shrink
+    var scrollFade = Math.max(0, 1 - Math.min(1, scrollTop / (innerHeight * 0.35)) * 0.85);
+    globeGroup.scale.setScalar(0.6 + scrollFade * 0.4);
+    globeGroup.position.y = 0.2 - (1 - scrollFade) * 2.5;
+    wireMat.opacity  = 0.13  * scrollFade;
+    wireMat2.opacity = 0.04  * scrollFade;
+    glowMat.opacity  = 0.035 * scrollFade;
+    rings.forEach(function(r) { r.mat.opacity = 0.15 * scrollFade; });
+    particleMat.opacity = 0.5 * scrollFade;
+    hexagons.forEach(function(h) { h.material.opacity = 0.18 * scrollFade; });
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  // Resize handler
+  window.addEventListener('resize', function() {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  // Expose pause/resume for room transitions
+  window.heroScene = {
+    pause: function()  { active = false; cancelAnimationFrame(frameId); cvs.style.display = 'none'; },
+    resume: function() { active = true;  cvs.style.display = ''; animate(); },
+  };
+})();
 </script>
 </body>
 </html>
