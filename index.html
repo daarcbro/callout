@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Callout — Real-Time Voice Translation for Gaming Squads</title>
 <meta name="description" content="Break every language barrier in gaming. Speak your language, your squad hears theirs — translated instantly with AI.">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#08080b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,32 +14,32 @@
    DESIGN TOKENS
    ============================================================ */
 :root {
-  --bg-deepest: #06060b;
-  --bg-base: #0a0a12;
-  --bg-raised: #10111a;
-  --bg-surface: #161722;
-  --bg-surface-2: #1c1d2e;
-  --bg-glass: rgba(16, 17, 26, 0.72);
-  --bg-glass-2: rgba(22, 23, 34, 0.65);
+  --bg-deepest: #08080a;
+  --bg-base: #0d0d10;
+  --bg-raised: #131316;
+  --bg-surface: #1b1b1f;
+  --bg-surface-2: #232327;
+  --bg-glass: rgba(19, 19, 22, 0.75);
+  --bg-glass-2: rgba(27, 27, 31, 0.65);
   --border: rgba(255, 255, 255, 0.06);
   --border-hover: rgba(255, 255, 255, 0.12);
-  --border-accent: rgba(99, 102, 241, 0.4);
-  --text-primary: #eaeaf0;
-  --text-secondary: #8b8ca3;
-  --text-muted: #5a5b72;
-  --text-faint: #3d3e52;
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-glow: rgba(99, 102, 241, 0.25);
-  --accent-glow-strong: rgba(99, 102, 241, 0.5);
-  --cyan: #06b6d4;
-  --cyan-glow: rgba(6, 182, 212, 0.2);
+  --border-accent: rgba(218, 155, 55, 0.4);
+  --text-primary: #ede8df;
+  --text-secondary: #97918a;
+  --text-muted: #625d55;
+  --text-faint: #433f38;
+  --accent: #da9b37;
+  --accent-light: #e8bb5e;
+  --accent-glow: rgba(218, 155, 55, 0.22);
+  --accent-glow-strong: rgba(218, 155, 55, 0.45);
+  --cyan: #c25a38;
+  --cyan-glow: rgba(194, 90, 56, 0.18);
   --emerald: #10b981;
   --emerald-glow: rgba(16, 185, 129, 0.15);
-  --rose: #f43f5e;
-  --rose-glow: rgba(244, 63, 94, 0.15);
-  --amber: #f59e0b;
-  --amber-glow: rgba(245, 158, 11, 0.15);
+  --rose: #ef4444;
+  --rose-glow: rgba(239, 68, 68, 0.15);
+  --amber: #3db89e;
+  --amber-glow: rgba(61, 184, 158, 0.15);
   --font: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
   --mono: 'JetBrains Mono', 'Consolas', monospace;
   --radius-sm: 8px;
@@ -49,10 +49,10 @@
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
   --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
   --shadow-lg: 0 16px 48px rgba(0,0,0,0.5);
-  --shadow-glow: 0 0 60px rgba(99, 102, 241, 0.15);
-  /* player colors — muted neon-ish */
-  --p0: #6ea8d7; --p1: #c48db8; --p2: #9b96cc;
-  --p3: #c4a36d; --p4: #7db87d; --p5: #6da4b8;
+  --shadow-glow: 0 0 60px rgba(218, 155, 55, 0.12);
+  /* player colors — warm muted tones */
+  --p0: #d4a06a; --p1: #c48d7a; --p2: #a89880;
+  --p3: #c4a36d; --p4: #8db87d; --p5: #7ab0a0;
 }
 
 /* ============================================================
@@ -99,7 +99,7 @@ a:hover { text-decoration: underline; }
 }
 .bg-effects .orb-3 {
   width: 400px; height: 400px; top: 40%; left: 50%;
-  background: radial-gradient(circle, #a855f7 0%, transparent 70%);
+  background: radial-gradient(circle, #8b5e3c 0%, transparent 70%);
   animation-duration: 22s; animation-delay: -10s; opacity: 0.2;
 }
 .bg-effects .grid-overlay {
@@ -248,7 +248,7 @@ a:hover { text-decoration: underline; }
   margin-bottom: 20px;
 }
 .hero h1 .gradient-text {
-  background: linear-gradient(135deg, var(--accent-light), var(--cyan), #a855f7);
+  background: linear-gradient(135deg, var(--accent-light), var(--cyan), #b87333);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -278,7 +278,7 @@ a:hover { text-decoration: underline; }
 }
 .connect-card::before {
   content: ''; position: absolute; inset: -1px;
-  background: linear-gradient(135deg, rgba(99,102,241,0.3), transparent 50%, rgba(6,182,212,0.2));
+  background: linear-gradient(135deg, rgba(218,155,55,0.3), transparent 50%, rgba(194,90,56,0.2));
   border-radius: var(--radius-lg); z-index: -1;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude; -webkit-mask-composite: xor; padding: 1px;
@@ -735,7 +735,7 @@ input[type="checkbox"] {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(218, 155, 55, 0.07) 0%, transparent 70%);
   transform: translate(-50%, -50%);
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -1360,7 +1360,7 @@ function playPCM(arrayBuf) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
   /* Color palette */
-  const INDIGO = 0x6366f1, CYAN = 0x06b6d4, PURPLE = 0xa855f7, LIGHT = 0x818cf8;
+  const INDIGO = 0xda9b37, CYAN = 0xc25a38, PURPLE = 0x8b5e3c, LIGHT = 0xe8bb5e;
 
   /* ---- Globe group ---- */
   const globeGroup = new THREE.Group();
