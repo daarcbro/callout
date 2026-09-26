@@ -149,11 +149,36 @@ a:hover { text-decoration: underline; }
 .btn:disabled::before { display: none; }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #4f46e5);
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
   color: #fff;
   box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 .btn-primary:hover { box-shadow: 0 6px 24px var(--accent-glow-strong), inset 0 1px 0 rgba(255,255,255,0.15); }
+
+.btn-ai {
+  background: linear-gradient(135deg, rgba(218, 155, 55, 0.22), rgba(194, 90, 56, 0.18));
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+  box-shadow: 0 0 14px var(--accent-glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-ai:hover {
+  background: linear-gradient(135deg, rgba(218, 155, 55, 0.38), rgba(194, 90, 56, 0.32));
+  box-shadow: 0 0 22px var(--accent-glow-strong);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.btn-ai:active { transform: translateY(0); }
+.btn-ai.loading svg.ai-spark-icon {
+  animation: aiSpin 1s linear infinite;
+}
+@keyframes aiSpin {
+  100% { transform: rotate(360deg); }
+}
 
 .btn-outline {
   background: transparent;
@@ -558,7 +583,14 @@ a:hover { text-decoration: underline; }
   font-size: 15px;
   font-weight: 400;
 }
-.stage.agent .big { color: var(--amber); }
+.stage.agent {
+  border-left: 3px solid var(--accent);
+  background: radial-gradient(ellipse at 15% 50%, var(--accent-glow) 0%, rgba(218, 155, 55, 0.03) 60%, transparent 85%);
+}
+.stage.agent .big {
+  color: var(--accent-light);
+  text-shadow: 0 0 24px var(--accent-glow);
+}
 .stage .empty {
   color: var(--text-faint);
   font-size: 15px;
@@ -585,7 +617,29 @@ a:hover { text-decoration: underline; }
 .item .swatch { margin-top: 7px; }
 .item .t { font-weight: 600; font-size: 15px; }
 .item .o { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
-.item.agent .t { color: var(--amber); }
+.item.agent {
+  background: rgba(218, 155, 55, 0.06);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  margin: 6px 0;
+  border-radius: var(--radius-sm);
+  border-bottom: 1px solid rgba(218, 155, 55, 0.15);
+}
+.item.agent .t { color: var(--accent-light); }
+.agent-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(218, 155, 55, 0.22);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent-light);
+  margin-right: 8px;
+  vertical-align: 1px;
+}
 .item.err .t { color: var(--rose); font-weight: 500; font-size: 13px; }
 
 /* Live + compose */
@@ -696,6 +750,81 @@ input[type="checkbox"] {
   margin-top: 6px;
   min-height: 1.4em;
   overflow-wrap: anywhere;
+}
+
+/* AI Copilot Panel */
+.ai-copilot-section {
+  background: linear-gradient(135deg, rgba(218, 155, 55, 0.08) 0%, rgba(19, 19, 22, 0.65) 100%);
+  border: 1px solid rgba(218, 155, 55, 0.22);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.ai-copilot-section::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 60px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ai-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ai-header h3 {
+  font-size: 11px; font-weight: 700;
+  color: var(--accent-light) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0 !important;
+}
+.ai-badge-live {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+  padding: 2px 6px;
+  background: rgba(218, 155, 55, 0.25);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent-light);
+}
+.ai-chip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.ai-action-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+.ai-action-chip:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+.ai-action-chip:active { transform: translateY(0); }
+.ai-wake-hint {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; color: var(--text-muted);
+}
+.wake-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* ============================================================
@@ -1003,6 +1132,10 @@ input[type="checkbox"] {
     </div>
     <span class="room-code" id="roomCode"></span>
     <div class="topbar-actions">
+      <button class="btn btn-ai btn-sm" id="btnRecap" title="Get AI Tactical Recap of recent squad comms">
+        <svg class="ai-spark-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/></svg>
+        <span id="btnRecapText">AI Recap</span>
+      </button>
       <button class="btn btn-outline btn-sm" id="copyLink">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5"/></svg>
         Copy Link
@@ -1025,7 +1158,7 @@ input[type="checkbox"] {
     <div class="log" id="log" aria-live="polite"></div>
     <div class="live" id="live"></div>
     <form class="compose" id="compose" autocomplete="off">
-      <input id="typed" placeholder="Type something to translate…" aria-label="Type a test line">
+      <input id="typed" placeholder="Type a callout or 'Hey Callout, summarize'…" aria-label="Type a test line or command">
       <button class="btn btn-primary btn-sm" type="submit">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Send
@@ -1052,9 +1185,28 @@ input[type="checkbox"] {
       </div>
       <div class="heard" id="heard"></div>
     </div>
-    <div class="side-section">
-      <h3>Voice Commands</h3>
-      <p class="hint">Say <b>"Agent, repeat"</b> to replay the last callout, or <b>"Agent, summary"</b> for a tactical recap.</p>
+    <div class="side-section ai-copilot-section">
+      <div class="ai-header">
+        <h3>AI Tactical Copilot</h3>
+        <span class="ai-badge-live">LIVE</span>
+      </div>
+      <p class="hint">
+        Speak into mic: <b>"Hey Callout, summarize"</b> or <b>"Hey Callout, repeat"</b>
+      </p>
+      <div class="ai-chip-grid">
+        <button type="button" class="ai-action-chip" id="chipRecap" title="Trigger AI squad summary">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          ⚡ Recap Comms
+        </button>
+        <button type="button" class="ai-action-chip" id="chipRepeat" title="Repeat last callout">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M1 4v5h5M15 12V7h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.5 9a6 6 0 1 0 1.2-5.5L1 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          🔄 Repeat Last
+        </button>
+      </div>
+      <div class="ai-wake-hint">
+        <span class="wake-dot"></span>
+        <span>Wake: "Hey Callout", "Callout", "Agent"</span>
+      </div>
     </div>
     <p class="hint">💡 Tip: Use headphones so speakers don't feed back into the mic.</p>
     <button class="btn btn-outline btn-sm" id="leave" style="margin-top: auto;">
@@ -1240,7 +1392,35 @@ $("#copyLink").onclick = async () => {
 };
 $("#leave").onclick = () => backToLobby("");
 
+function triggerRecap() {
+  if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+  const btn = $("#btnRecap");
+  if (btn) {
+    btn.classList.add("loading");
+    $("#btnRecapText").textContent = "Analyzing...";
+  }
+  state.ws.send(JSON.stringify({ type: "summarize" }));
+}
+
+function triggerRepeat() {
+  if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+  state.ws.send(JSON.stringify({ type: "repeat" }));
+}
+
+function resetRecapBtn() {
+  const btn = $("#btnRecap");
+  if (btn) {
+    btn.classList.remove("loading");
+    $("#btnRecapText").textContent = "AI Recap";
+  }
+}
+
+$("#btnRecap").onclick = triggerRecap;
+const chipR = $("#chipRecap"); if (chipR) chipR.onclick = triggerRecap;
+const chipRep = $("#chipRepeat"); if (chipRep) chipRep.onclick = triggerRepeat;
+
 function backToLobby(msg) {
+  resetRecapBtn();
   if (state.ws) { state.ws.onclose = null; try { state.ws.close(); } catch {} }
   state.ws = null; stopMic();
   if (state.playCtx) { state.playCtx.close(); state.playCtx = null; }
@@ -1295,9 +1475,19 @@ function pushToLog() {
 }
 function logItem(c) {
   const d = document.createElement("div"); d.className = "item" + (c.kind ? " " + c.kind : "");
-  const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = c.kind === "agent" ? "var(--amber)" : color(c.color);
+  const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = c.kind === "agent" ? "var(--accent)" : color(c.color);
+  if (c.kind === "agent") sw.style.boxShadow = "0 0 10px var(--accent-glow-strong)";
   const box = document.createElement("div");
-  const t = document.createElement("div"); t.className = "t"; t.textContent = c.text;
+  const t = document.createElement("div"); t.className = "t";
+  if (c.kind === "agent") {
+    const tag = document.createElement("span");
+    tag.className = "agent-tag";
+    tag.textContent = c.label || "AI Tactical";
+    t.append(tag);
+  }
+  const textSpan = document.createElement("span");
+  textSpan.textContent = c.text;
+  t.append(textSpan);
   box.append(t);
   if (c.sub) { const o = document.createElement("div"); o.className = "o"; o.textContent = c.sub; box.append(o); }
   d.append(sw, box); return d;
@@ -1310,7 +1500,8 @@ function present(c) {
   const stageEl = $("#stage");
   stageEl.className = "stage active" + (c.kind === "agent" ? " agent" : "");
   const who = $("#who"); who.innerHTML = "";
-  const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = c.kind === "agent" ? "var(--amber)" : color(c.color);
+  const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = c.kind === "agent" ? "var(--accent)" : color(c.color);
+  if (c.kind === "agent") sw.style.boxShadow = "0 0 12px var(--accent-glow-strong)";
   const lb = document.createElement("span"); lb.textContent = c.who; who.append(sw, lb);
   const big = $("#big"); big.textContent = c.text;
   // Re-trigger animation
@@ -1323,8 +1514,12 @@ function present(c) {
 function showCallout(m) {
   present({ text: m.translated, sub: m.original, color: m.color, who: m.solo ? "You (solo test)" : m.from, kind: "" });
 }
-function showAgent(m) { present({ text: m.text, sub: "", who: "Agent: " + m.label, kind: "agent" }); }
+function showAgent(m) {
+  resetRecapBtn();
+  present({ text: m.text, sub: "", who: "Callout AI • " + (m.label || "Tactical Agent"), kind: "agent", label: m.label });
+}
 function addError(msg) {
+  resetRecapBtn();
   const d = logItem({ text: msg, kind: "err", color: 0 });
   d.querySelector(".swatch").style.background = "var(--rose)";
   $("#log").prepend(d);

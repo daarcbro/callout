@@ -230,7 +230,7 @@ async def summarize(entries: list, target: str) -> str:
         groq_client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[
-                {"role": "system", "content": f"You are a squad's tactical AI. Summarize the recent callouts as one brief tactical update in {target_name}, 25 words max. Output only the update."},
+                {"role": "system", "content": f"You are Callout, an elite esports squad tactical AI. Summarize recent squad comms into a crisp, high-impact tactical situation report in {target_name}. 25 words max. Focus on enemy positions, player status, and map objectives. Output only the briefing without preface."},
                 {"role": "user", "content": lines},
             ],
             temperature=0.3,
@@ -511,9 +511,49 @@ async def handle_turn(player: Player, ev) -> None:
 # --------------------------------------------------------------------------- #
 # Callout pipeline
 # --------------------------------------------------------------------------- #
-AGENT_RE = re.compile(r"^\W*(?:hey\s+|ok\s+|okay\s+)?(?:agent|एजेंट|एजेन्ट)(?=\W|$)\W*(.*)$", re.I | re.S)
-REPEAT_RE = re.compile(r"repeat|again|say that|once more|dobara|phir se|दोबारा|फिर से", re.I)
-SUMMARY_RE = re.compile(r"summar|status|situation|recap|update|brief|सारांश", re.I)
+AGENT_RE = re.compile(
+    r"^\W*(?:hey\s+|ok\s+|okay\s+|yo\s+)?(?:callout|call\s*out|agent|कॉलाउट|एजेंट|एजेन्ट)(?:[\s,:\-—]+(.*)|$)",
+    re.I | re.S,
+)
+REPEAT_RE = re.compile(r"repeat|again|say that|once more|last call|dobara|phir se|दोबारा|फिर से|क्या बोला", re.I)
+SUMMARY_RE = re.compile(r"summar|status|situation|recap|update|brief|what happened|kya hua|kya chal raha|सारांश|हाल", re.I)
+
+
+async def ask_tactical_copilot(command: str, entries: list, target: str) -> str:
+    target_name = LANGS.get(target, "English")
+    lines = (
+        "\n".join(f"{e['from']}: {e['translations'].get(target) or e['original']}" for e in entries[-8:])
+        if entries
+        else "No prior squad comms."
+    )
+    system = (
+        f"You are Callout, an elite AI tactical gaming copilot assisting a squad in live voice chat.\n"
+        f"The player asked: '{command}'\n"
+        f"Recent squad callouts:\n{lines}\n"
+        f"Rules:\n"
+        f"1. Answer in {target_name} concisely in 20 words or fewer.\n"
+        f"2. Be sharp, tactical, and direct. Sound like an esports coach or tactical AI assistant.\n"
+        f"3. Output ONLY the response, no conversational filler or quotes."
+    )
+    try:
+        resp = await asyncio.wait_for(
+            groq_client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": command},
+                ],
+                temperature=0.3,
+                max_tokens=80,
+            ),
+            timeout=8,
+        )
+        out = (resp.choices[0].message.content or "").strip()
+        out = out.splitlines()[0].strip().strip("\"'“”") if out else ""
+        return out or "Callout AI standing by."
+    except Exception as e:
+        log.warning("Copilot answer failed: %s", e)
+        return "Callout standing by. Say 'Hey Callout, summarize' or 'repeat'."
 
 
 async def utterance_worker(player: Player) -> None:
@@ -533,7 +573,7 @@ async def process_utterance(player: Player, text: str, lang: Optional[str]) -> N
 
     m = AGENT_RE.match(text)
     if m:
-        await run_agent(player, m.group(1).strip())
+        await run_agent(player, m.group(1).strip() if m.group(1) else "")
         return
 
     others = [p for p in room.players.values() if p.id != player.id]
@@ -575,12 +615,16 @@ async def process_utterance(player: Player, text: str, lang: Optional[str]) -> N
 
 async def run_agent(player: Player, command: str) -> None:
     room = player.room
-    cmd = command.lower()
+    cmd = (command or "").lower().strip()
 
     async def reply(text: str, label: str, speak: bool = True) -> None:
         await player.send({"type": "agent", "label": label, "text": text})
         if speak:
             player.tts_q.put_nowait(text)
+
+    if not cmd:
+        await reply("Callout AI online. Say: summarize, repeat, or ask a tactical question.", "AI Copilot")
+        return
 
     if REPEAT_RE.search(cmd):
         pool = [e for e in room.history if e["from_id"] != player.id] or room.history
@@ -594,16 +638,20 @@ async def run_agent(player: Player, command: str) -> None:
             entry["translations"][player.listen] = text
         await reply(text, f"Repeat from {entry['from']}")
     elif SUMMARY_RE.search(cmd):
-        recent = room.history[-8:]
+        recent = room.history[-10:]
         if not recent:
-            await reply("No callouts yet.", "Summary")
+            await reply("No squad callouts recorded yet.", "Tactical Recap")
             return
         try:
-            await reply(await summarize(recent, player.listen), "Summary")
+            await reply(await summarize(recent, player.listen), "Tactical Recap")
         except Exception as e:  # noqa: BLE001
             await player.send({"type": "error", "where": "agent", "message": f"Summary failed: {e}"})
     else:
-        await reply("Try: agent repeat, or agent summary.", "Agent", speak=False)
+        try:
+            ans = await ask_tactical_copilot(command, room.history, player.listen)
+            await reply(ans, "Tactical AI")
+        except Exception:
+            await reply("Callout standing by.", "Tactical AI", speak=False)
 
 
 async def _browser_speak(player: Player, text: str) -> None:
@@ -742,6 +790,35 @@ async def handle_control(player: Player, raw: str) -> None:
         text = str(msg.get("text", "")).strip()[:300]
         if text:
             player.utterances.put_nowait((text, None))
+    elif kind == "summarize":
+        recent = player.room.history[-10:]
+        if not recent:
+            await player.send({"type": "agent", "label": "Tactical Recap", "text": "No squad comms recorded yet."})
+            player.tts_q.put_nowait("No squad comms recorded yet.")
+        else:
+            try:
+                summary_text = await summarize(recent, player.listen)
+                await player.send({"type": "agent", "label": "Tactical Recap", "text": summary_text})
+                player.tts_q.put_nowait(summary_text)
+            except Exception as e:
+                await player.send({"type": "error", "where": "agent", "message": f"Summary failed: {e}"})
+    elif kind == "repeat":
+        pool = [e for e in player.room.history if e["from_id"] != player.id] or player.room.history
+        if not pool:
+            await player.send({"type": "agent", "label": "Repeat", "text": "Nothing to repeat yet."})
+            player.tts_q.put_nowait("Nothing to repeat yet.")
+        else:
+            entry = pool[-1]
+            text = entry["translations"].get(player.listen)
+            if text is None:
+                text = await translate(entry["original"], player.listen)
+                entry["translations"][player.listen] = text
+            await player.send({"type": "agent", "label": f"Repeat from {entry['from']}", "text": text})
+            player.tts_q.put_nowait(text)
+    elif kind == "agent_ask":
+        query = str(msg.get("text", "")).strip()[:150]
+        if query:
+            await run_agent(player, query)
 
 
 if __name__ == "__main__":
