@@ -692,6 +692,11 @@ async def index():
     return FileResponse(BASE_DIR / "index.html")
 
 
+@app.get("/room")
+async def room_page():
+    return FileResponse(BASE_DIR / "room.html")
+
+
 @app.get("/health")
 async def health():
     return JSONResponse({

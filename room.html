@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Callout — Squad Comms Room</title>
+  <meta name="description" content="Live AI tactical voice translation squad room.">
+  <meta name="theme-color" content="#060810">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ============================================================
+       DESIGN TOKENS  (same mint / violet palette as the landing page)
+       ============================================================ */
+    :root {
+      --bg-deepest: #05070c;
+      --bg-base: #080c14;
+      --bg-surface: #0e1422;
+      --bg-surface-2: #141c2e;
+
+      --mint: #00ffa3;
+      --mint-glow: rgba(0, 255, 163, 0.25);
+      --mint-subtle: rgba(0, 255, 163, 0.10);
+      --violet: #a855f7;
+      --violet-glow: rgba(168, 85, 247, 0.28);
+      --violet-subtle: rgba(168, 85, 247, 0.10);
+
+      --cyan: #38bdf8;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+
+      --border: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.12);
+      --border-mint: rgba(0, 255, 163, 0.32);
+      --border-violet: rgba(168, 85, 247, 0.32);
+
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --topbar-h: 68px;
+
+      /* player colors */
+      --p0: #00ffa3;
+      --p1: #a855f7;
+      --p2: #38bdf8;
+      --p3: #f59e0b;
+      --p4: #ec4899;
+      --p5: #10b981;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+    }
+
+    body {
+      background-color: var(--bg-deepest);
+      background-image:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0, 255, 163, 0.10), transparent 65%),
+        radial-gradient(circle 520px at 90% 85%, rgba(0, 255, 163, 0.07), transparent 55%),
+        radial-gradient(circle 520px at 8% 45%, rgba(56, 189, 248, 0.07), transparent 55%),
+        radial-gradient(circle 600px at 75% 15%, rgba(168, 85, 247, 0.08), transparent 55%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* faint engineering grid, fades out toward the edges */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+      background-size: 44px 44px;
+      -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 25%, #000 25%, transparent 80%);
+      mask-image: radial-gradient(ellipse 85% 65% at 50% 25%, #000 25%, transparent 80%);
+    }
+
+    button, input, select {
+      font: inherit;
+      color: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--mint);
+      outline-offset: 2px;
+    }
+
+    /* ============================================================
+       TOPBAR  (3-part grid so the room code is truly centred)
+       ============================================================ */
+    .topbar {
+      height: var(--topbar-h);
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 12, 20, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border-color: var(--border-mint);
+      transform: translateX(-2px);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--mint), var(--violet));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 16px;
+      color: #05070c;
+      box-shadow: 0 0 18px var(--mint-glow);
+    }
+
+    .brand-name {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #fff;
+    }
+
+    .topbar-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .room-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(14, 20, 34, 0.9);
+      border: 1px solid var(--border-strong);
+      padding: 6px 8px 6px 16px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .room-pill .code-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--mint);
+      letter-spacing: 0.18em;
+      text-shadow: 0 0 14px var(--mint-glow);
+    }
+
+    .room-pill .btn-copy {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .room-pill .btn-copy:hover {
+      color: var(--mint);
+      border-color: var(--border-mint);
+      background: var(--mint-subtle);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+    }
+
+    .connection-status.ok { border-color: rgba(0, 255, 163, 0.2); color: #b6f7dd; }
+    .connection-status.bad { border-color: rgba(244, 63, 94, 0.25); color: #fecdd3; }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 8px var(--amber);
+      animation: statusPulse 2s infinite;
+    }
+
+    .connection-status.ok .pulse-dot { background: var(--mint); box-shadow: 0 0 8px var(--mint); }
+    .connection-status.bad .pulse-dot { background: var(--rose); box-shadow: 0 0 8px var(--rose); animation: none; }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ============================================================
+       DASHBOARD LAYOUT
+       ============================================================ */
+    .room-dashboard {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 28px 26px;
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* on big screens the whole room fits the window; lists scroll inside their panels */
+    @media (min-width: 1281px) and (min-height: 760px) {
+      body { height: 100vh; overflow: hidden; }
+      .room-dashboard { min-height: 0; grid-template-rows: minmax(0, 1fr); }
+      .col-squad, .col-stage, .col-voiceagent { min-height: 0; }
+      .col-squad > .card-panel:first-child { flex: 1; min-height: 0; }
+      .roster-list { overflow-y: auto; min-height: 0; }
+      .comms-log-panel { flex: 1; min-height: 0; }
+      .comms-feed { max-height: none; min-height: 0; }
+      .voiceagent-panel { min-height: 0; }
+      .voiceagent-body { overflow-y: auto; min-height: 0; }
+    }
+
+    @media (max-width: 1280px) {
+      .room-dashboard { grid-template-columns: 280px minmax(0, 1fr); }
+      .col-voiceagent { grid-column: span 2; }
+    }
+
+    @media (max-width: 880px) {
+      .room-dashboard { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+      .col-voiceagent { grid-column: span 1; }
+      .topbar { grid-template-columns: auto 1fr auto; gap: 10px; padding: 0 16px; }
+      .brand-group { display: none; }
+      .col-stage { order: -1; }
+      .stage-hud { padding: 26px 22px; min-height: 240px; }
+    }
+
+    @media (max-width: 600px) {
+      .btn-back span { display: none; }
+      .btn-back { padding: 9px 11px; }
+      .connection-status { padding: 7px 11px; font-size: 12px; white-space: nowrap; }
+      .room-pill { padding-left: 12px; gap: 8px; }
+      .room-pill > span:first-child { display: none; }
+      .room-pill .code-val { letter-spacing: 0.12em; }
+    }
+
+    /* ============================================================
+       CARDS & PANELS
+       ============================================================ */
+    .card-panel {
+      background: linear-gradient(180deg, rgba(20, 28, 46, 0.72), rgba(11, 16, 28, 0.78));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 14px 40px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .panel-title svg {
+      box-sizing: content-box;
+      width: 15px;
+      height: 15px;
+      padding: 6px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--mint);
+    }
+
+    /* ============================================================
+       LEFT COLUMN: SQUAD & AUDIO
+       ============================================================ */
+    .col-squad, .col-stage, .col-voiceagent { min-width: 0; }
+
+    .col-squad {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .roster-list {
+      list-style: none;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-height: 180px;
+    }
+
+    .roster-list:empty {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .roster-list:empty::before {
+      content: 'Waiting for your squad to join…';
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 30px 12px;
+    }
+
+    .roster-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 12px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+    }
+
+    .roster-item.talking {
+      border-color: var(--border-mint);
+      background: var(--mint-subtle);
+      box-shadow: 0 0 22px rgba(0, 255, 163, 0.12);
+    }
+
+    .player-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .player-avatar {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      background: color-mix(in srgb, currentColor 14%, var(--bg-surface));
+      transition: box-shadow 0.25s;
+    }
+
+    .roster-item.talking .player-avatar {
+      box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 22%, transparent);
+    }
+
+    .player-name {
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      font-family: var(--mono);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .audio-controls-body {
+      padding: 16px 18px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .select-styled {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .select-styled:hover { border-color: var(--border-strong); }
+    .select-styled:focus { border-color: var(--mint); box-shadow: 0 0 0 3px var(--mint-subtle); }
+
+    /* LED-style mic meter */
+    .meter-container {
+      background: rgba(0, 0, 0, 0.45);
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .meter-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(8, 12, 20, 0.92) 7px 9px);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--mint), var(--cyan) 60%, var(--violet));
+      transition: width 0.05s ease;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--bg-surface-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      transition: 0.2s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      top: 3px;
+      background-color: var(--text-muted);
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    input:checked + .slider {
+      background-color: var(--mint-subtle);
+      border-color: var(--mint);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+      background-color: var(--mint);
+      box-shadow: 0 0 8px var(--mint);
+    }
+
+    input:focus-visible + .slider {
+      outline: 2px solid var(--mint);
+      outline-offset: 2px;
+    }
+
+    /* ============================================================
+       CENTER COLUMN: LIVE HUD & LOG
+       ============================================================ */
+    .col-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stage-hud {
+      background:
+        radial-gradient(ellipse 70% 120% at 0% 0%, rgba(0, 255, 163, 0.09), transparent 60%),
+        radial-gradient(ellipse 60% 100% at 100% 100%, rgba(168, 85, 247, 0.08), transparent 60%),
+        linear-gradient(180deg, rgba(14, 20, 34, 0.96), rgba(8, 12, 20, 0.9));
+      border: 1px solid rgba(0, 255, 163, 0.22);
+      border-radius: var(--radius-lg);
+      padding: 34px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 280px;
+      box-shadow: 0 0 45px rgba(0, 255, 163, 0.07), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .stage-hud::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--mint), var(--violet), transparent);
+    }
+
+    /* targeting-reticle corner marks */
+    .stage-hud::after {
+      content: '';
+      position: absolute;
+      inset: 14px;
+      pointer-events: none;
+      opacity: 0.45;
+      background:
+        linear-gradient(var(--mint), var(--mint)) top left / 16px 1.5px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) top left / 1.5px 16px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) top right / 16px 1.5px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) top right / 1.5px 16px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) bottom left / 16px 1.5px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) bottom left / 1.5px 16px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) bottom right / 16px 1.5px no-repeat,
+        linear-gradient(var(--mint), var(--mint)) bottom right / 1.5px 16px no-repeat;
+    }
+
+    .stage-hud > * { position: relative; z-index: 1; }
+
+    .stage-hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--mint-subtle);
+      border: 1px solid var(--border-mint);
+      color: var(--mint);
+      font-size: 10.5px;
+      font-weight: 700;
+      font-family: var(--mono);
+      letter-spacing: 0.12em;
+      align-self: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 8px var(--mint);
+      animation: statusPulse 1.6s infinite;
+    }
+
+    .stage-speaker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    .stage-speaker-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 10px var(--mint);
+    }
+
+    .stage-callout-text {
+      font-size: clamp(28px, 3.1vw, 44px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 16px;
+      text-shadow: 0 0 34px rgba(0, 255, 163, 0.22);
+      overflow-wrap: anywhere;
+    }
+
+    .stage-callout-text.pop,
+    .stage-speaker.pop {
+      animation: calloutIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes calloutIn {
+      from { opacity: 0; transform: translateY(10px); filter: blur(5px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+
+    .stage-original-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-style: italic;
+      padding-left: 12px;
+      border-left: 2px solid var(--border-strong);
+    }
+
+    .stage-original-sub:empty { display: none; }
+
+    .stage-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 16px;
+      color: var(--text-muted);
+      padding: 24px 20px;
+    }
+
+    .stage-placeholder > svg {
+      width: 64px;
+      height: 64px;
+      padding: 18px;
+      border-radius: 50%;
+      color: var(--mint);
+      background: var(--mint-subtle);
+      border: 1px solid var(--border-mint);
+      animation: ringPulse 2.8s infinite ease-out;
+    }
+
+    .stage-placeholder strong {
+      color: var(--text-primary);
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    @keyframes ringPulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 163, 0.28); }
+      100% { box-shadow: 0 0 0 26px rgba(0, 255, 163, 0); }
+    }
+
+    .waveform-visualizer {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 30px;
+      margin-top: 18px;
+    }
+
+    .waveform-bar {
+      width: 4px;
+      height: 8px;
+      background: linear-gradient(to top, var(--mint), var(--cyan));
+      border-radius: 2px;
+      opacity: 0.35;
+      transition: height 0.1s ease, opacity 0.1s ease;
+    }
+
+    .stage-hud.active-audio .waveform-bar {
+      opacity: 0.95;
+      animation: barJump 0.8s infinite ease-in-out alternate;
+    }
+
+    .stage-hud.active-audio .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+    .stage-hud.active-audio .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+    .stage-hud.active-audio .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+    .stage-hud.active-audio .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+    .stage-hud.active-audio .waveform-bar:nth-child(6) { animation-delay: 0.5s; }
+    .stage-hud.active-audio .waveform-bar:nth-child(7) { animation-delay: 0.15s; }
+    .stage-hud.active-audio .waveform-bar:nth-child(8) { animation-delay: 0.35s; }
+
+    @keyframes barJump {
+      0% { height: 6px; }
+      100% { height: 28px; }
+    }
+
+    .comms-log-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 300px;
+    }
+
+    .comms-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 380px;
+    }
+
+    .comms-feed:empty {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .comms-feed:empty::before {
+      content: 'No comms yet. Callouts will appear here.';
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .feed-item {
+      position: relative;
+      padding: 11px 16px 11px 20px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.028);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: feedIn 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .feed-item::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 12px;
+      bottom: 12px;
+      width: 3px;
+      border-radius: 3px;
+      background: var(--accent, var(--mint));
+      box-shadow: 0 0 10px color-mix(in srgb, var(--accent, var(--mint)) 60%, transparent);
+    }
+
+    @keyframes feedIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .feed-speaker {
+      font-weight: 700;
+      color: var(--accent, var(--mint));
+    }
+
+    .feed-time {
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .feed-callout {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .feed-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .feed-item.agent-item {
+      border-color: var(--border-violet);
+      background: var(--violet-subtle);
+      --accent: var(--violet);
+    }
+
+    .composer-area {
+      padding: 14px 18px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(8, 12, 20, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .composer-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    .composer-input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 16px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .composer-input::placeholder { color: var(--text-muted); }
+    .composer-input:focus { border-color: var(--mint); box-shadow: 0 0 0 3px var(--mint-subtle); }
+
+    .btn-send {
+      padding: 0 22px;
+      background: linear-gradient(135deg, var(--mint), #00c8ff);
+      color: #05070c;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 20px rgba(0, 255, 163, 0.22);
+      transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-send:hover {
+      opacity: 0.94;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 26px rgba(0, 255, 163, 0.36);
+    }
+
+    .quick-chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .quick-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-chip:hover {
+      background: var(--mint-subtle);
+      border-color: var(--border-mint);
+      color: var(--mint);
+      transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       RIGHT COLUMN: CALLOUT VOICEAGENT
+       ============================================================ */
+    .col-voiceagent {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .voiceagent-panel {
+      background: linear-gradient(180deg, rgba(168, 85, 247, 0.10), rgba(11, 16, 28, 0.82) 55%);
+      border: 1px solid var(--border-violet);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.07), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .voiceagent-panel .panel-title { letter-spacing: 0.08em; }
+    .voiceagent-panel .panel-title svg { color: var(--violet); border-color: var(--border-violet); background: var(--violet-subtle); }
+
+    .voiceagent-badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--violet-subtle);
+      border: 1px solid var(--border-violet);
+      color: #d8b4fe;
+      font-size: 10.5px;
+      font-weight: 700;
+      font-family: var(--mono);
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .voiceagent-badge-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--violet);
+      box-shadow: 0 0 8px var(--violet);
+      animation: statusPulse 2s infinite;
+    }
+
+    .voiceagent-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .voiceagent-hero {
+      text-align: center;
+      padding: 22px 14px 18px;
+      border-radius: 14px;
+      background: radial-gradient(ellipse 80% 70% at 50% 0%, rgba(168, 85, 247, 0.16), rgba(0, 0, 0, 0.25));
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .agent-radar-ring {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.22), transparent 75%);
+      border: 1.5px solid var(--violet);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d8b4fe;
+      box-shadow: 0 0 22px var(--violet-glow);
+    }
+
+    .agent-radar-ring::before,
+    .agent-radar-ring::after {
+      content: '';
+      position: absolute;
+      inset: -1.5px;
+      border-radius: 50%;
+      border: 1.5px solid var(--violet);
+      animation: radarPing 3s infinite ease-out;
+      opacity: 0;
+    }
+
+    .agent-radar-ring::after { animation-delay: 1.5s; }
+
+    @keyframes radarPing {
+      0% { transform: scale(1); opacity: 0.55; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+
+    .voiceagent-hero h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .voiceagent-hero p {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .voice-commands-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-agent-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: rgba(14, 20, 34, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.22s ease;
+      text-align: left;
+    }
+
+    .btn-agent-action > svg { color: var(--text-muted); transition: transform 0.2s, color 0.2s; flex-shrink: 0; }
+
+    .btn-agent-action:hover {
+      background: var(--violet-subtle);
+      border-color: var(--border-violet);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(168, 85, 247, 0.16);
+    }
+
+    .btn-agent-action:hover > svg { color: #d8b4fe; transform: translateX(3px); }
+
+    .agent-btn-title {
+      font-weight: 700;
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .agent-ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--c, var(--violet));
+      background: color-mix(in srgb, var(--c, var(--violet)) 13%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c, var(--violet)) 32%, transparent);
+    }
+
+    .agent-btn-phrase {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin: 4px 0 0 38px;
+    }
+
+    .agent-dispatch-box {
+      margin-top: auto;
+      background: rgba(3, 5, 10, 0.6);
+      border: 1px solid var(--border-violet);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 120px;
+    }
+
+    .dispatch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-family: var(--mono);
+      letter-spacing: 0.1em;
+      color: #d8b4fe;
+      font-weight: 700;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed rgba(168, 85, 247, 0.28);
+    }
+
+    .dispatch-content {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      font-family: var(--mono);
+    }
+
+    .dispatch-content.empty {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .dispatch-content.empty::after {
+      content: '\258D';
+      margin-left: 3px;
+      color: var(--violet);
+      font-style: normal;
+      animation: cursorBlink 1.1s steps(2) infinite;
+    }
+
+    @keyframes cursorBlink { 50% { opacity: 0; } }
+
+    /* Toast */
+    .alert-banner {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 18px 12px 16px;
+      background: rgba(14, 20, 34, 0.96);
+      border: 1px solid var(--border-mint);
+      border-left: 3px solid var(--mint);
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 24px rgba(0, 255, 163, 0.08);
+      font-size: 13px;
+      color: var(--text-primary);
+      z-index: 100;
+      display: none;
+      max-width: min(380px, calc(100vw - 32px));
+      animation: alertSlide 0.3s ease;
+    }
+
+    @keyframes alertSlide {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn-back" id="btnBackToIntro" title="Leave room and return to intro page">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M10 13L5 8L10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Back to Intro</span>
+      </button>
+      <div class="brand-group">
+        <div class="brand-icon">C</div>
+        <span class="brand-name">CALLOUT</span>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="room-pill">
+        <span>ROOM:</span>
+        <span class="code-val" id="roomCodeDisplay">----</span>
+        <button class="btn-copy" id="btnCopyRoom" title="Copy Room Invite Link">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+            <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="connection-status" id="connStatus">
+        <span class="pulse-dot"></span>
+        <span id="connStatusText">Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD GRID -->
+  <main class="room-dashboard">
+
+    <!-- LEFT COLUMN: SQUAD & AUDIO -->
+    <aside class="col-squad">
+      <!-- Active Squad Roster -->
+      <section class="card-panel">
+        <div class="panel-header">
+          <span class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+              <path d="M11 14v-2a3 3 0 0 0-3-3H4a3 3 0 0 0-3 3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="6" cy="4" r="3" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M15 14v-1.5a2.5 2.5 0 0 0-2-2.45M10.5 1.55a2.5 2.5 0 0 1 0 4.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Active Squad
+          </span>
+          <span class="player-tag" id="squadCount">0 / 6</span>
+        </div>
+        <ul class="roster-list" id="rosterList"></ul>
+      </section>
+
+      <!-- Audio Comms Config -->
+      <section class="card-panel">
+        <div class="panel-header">
+          <span class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M13 7v2a5 5 0 0 1-10 0V7M8 14v2M5 16h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Audio Comms
+          </span>
+        </div>
+        <div class="audio-controls-body">
+          <div class="form-group">
+            <label for="listenSelect">Hear Callouts In</label>
+            <select class="select-styled" id="listenSelect"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Microphone Activity</label>
+            <div class="meter-container">
+              <div class="meter-fill" id="micMeter"></div>
+            </div>
+          </div>
+
+          <div class="toggle-row">
+            <span>Mute Microphone</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="muteCheck">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <span>Play Callouts Aloud</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="voiceCheck" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER COLUMN: LIVE CALLOUT HUD & LOG -->
+    <section class="col-stage">
+      <!-- Live Stage HUD -->
+      <div class="stage-hud" id="stageHud">
+        <div class="stage-hud-badge"><span class="live-dot"></span>TACTICAL TRANSLATION HUD</div>
+        
+        <div id="activeCalloutContent" style="display: none;">
+          <div class="stage-speaker">
+            <span class="stage-speaker-swatch" id="speakerSwatch"></span>
+            <span id="speakerName">Player</span>
+          </div>
+          <div class="stage-callout-text" id="translatedCallout">Enemy pushing catwalk!</div>
+          <div class="stage-original-sub" id="originalTranscript">Original: "बंदा कैटवॉक से आ रहा है"</div>
+          <div class="waveform-visualizer">
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+          </div>
+        </div>
+
+        <div class="stage-placeholder" id="stagePlaceholder">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>
+          </svg>
+          <div>
+            <strong>Ready for incoming comms</strong>
+            <p style="font-size: 13px; margin-top: 4px;">Speak into your mic or type a tactical callout below.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comms Feed Log -->
+      <div class="card-panel comms-log-panel">
+        <div class="panel-header">
+          <span class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+              <path d="M1 3h14M1 7h10M1 11h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Squad Comms Log
+          </span>
+          <span style="font-size: 11px; font-family: var(--mono); color: var(--text-muted);" id="livePartialText"></span>
+        </div>
+
+        <div class="comms-feed" id="commsFeed"></div>
+
+        <!-- Composer Area -->
+        <div class="composer-area">
+          <div class="quick-chips-row">
+            <button type="button" class="quick-chip" onclick="quickSend('Enemy pushing catwalk!')">🎯 Enemy Catwalk</button>
+            <button type="button" class="quick-chip" onclick="quickSend('Need revive! Cover me!')">🛡️ Need Revive</button>
+            <button type="button" class="quick-chip" onclick="quickSend('Rotating to B site!')">⚡ Rotate to B</button>
+            <button type="button" class="quick-chip" onclick="quickSend('One shot! Low HP!')">💀 One Shot Low HP</button>
+            <button type="button" class="quick-chip" onclick="quickSend('Smoke deployed!')">💨 Smoke Deployed</button>
+          </div>
+
+          <form class="composer-form" id="composerForm" autocomplete="off">
+            <input class="composer-input" id="composerInput" placeholder="Type a callout or 'Hey Callout, summarize'…" aria-label="Type callout">
+            <button class="btn-send" type="submit">
+              <span>Send</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: CALLOUT VOICEAGENT (UNCRAMMED & REDESIGNED!) -->
+    <aside class="col-voiceagent">
+      <section class="card-panel voiceagent-panel">
+        <div class="panel-header">
+          <span class="panel-title" style="color: var(--violet);">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1v14M1 8h14M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="8" cy="8" r="2.5" fill="currentColor"/>
+            </svg>
+            Callout Voiceagent
+          </span>
+          <span class="voiceagent-badge-live">ONLINE</span>
+        </div>
+
+        <div class="voiceagent-body">
+          <div class="voiceagent-hero">
+            <div class="agent-radar-ring">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>
+              </svg>
+            </div>
+            <h3>Hands-Free Tactical AI</h3>
+            <p>Speak aloud with wake words: <br><strong style="color: #fff;">"Hey Callout"</strong>, <strong style="color: #fff;">"Callout"</strong>, or <strong style="color: #fff;">"Agent"</strong></p>
+          </div>
+
+          <div class="voice-commands-list">
+            <button type="button" class="btn-agent-action" id="btnActionRecap" title="Trigger AI Comms Recap">
+              <div>
+                <div class="agent-btn-title">
+                  <span class="agent-ico" style="--c: var(--mint);"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8l1-5.5z"/></svg></span> Recap Squad Comms
+                </div>
+                <div class="agent-btn-phrase">"Hey Callout, summarize"</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+
+            <button type="button" class="btn-agent-action" id="btnActionRepeat" title="Replay Last Callout">
+              <div>
+                <div class="agent-btn-title">
+                  <span class="agent-ico" style="--c: var(--cyan);"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 019.4-3.9l1.6 1.4M13.5 2v3.5H10M13.5 8a5.5 5.5 0 01-9.4 3.9l-1.6-1.4M2.5 14v-3.5H6"/></svg></span> Repeat Last Callout
+                </div>
+                <div class="agent-btn-phrase">"Hey Callout, repeat"</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+
+            <button type="button" class="btn-agent-action" id="btnActionIntel" title="Request Tactical Strat">
+              <div>
+                <div class="agent-btn-title">
+                  <span class="agent-ico" style="--c: var(--violet);"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.6"/><path d="M8 .8v3M8 12.2v3M.8 8h3M12.2 8h3"/></svg></span> Tactical Situation Intel
+                </div>
+                <div class="agent-btn-phrase">"Hey Callout, what's our strat?"</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Dedicated Voiceagent Dispatch Terminal -->
+          <div class="agent-dispatch-box">
+            <div class="dispatch-header">
+              <span>● VOICEAGENT DISPATCH</span>
+              <span id="dispatchTimestamp">STANDBY</span>
+            </div>
+            <div class="dispatch-content empty" id="dispatchContent">
+              Voiceagent standing by. Ready to summarize comms or provide tactical debriefs.
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+  </main>
+
+  <div class="alert-banner" id="alertBanner"></div>
+
+  <!-- AUDIO CAPTURE & WEBSOCKET ENGINE -->
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const BCP = { en: "en-US", hi: "hi-IN", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", it: "it-IT", ja: "ja-JP", ar: "ar-SA", tr: "tr-TR" };
+    const HUES = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)", "var(--p5)"];
+    const FALLBACK_LANGS = { en: "English", hi: "Hindi", es: "Spanish", fr: "French", de: "German", pt: "Portuguese", it: "Italian", ja: "Japanese", ar: "Arabic", tr: "Turkish" };
+
+    const state = {
+      ws: null, me: null, roster: [], langs: {}, tts: "browser", mic: null, ctx: null,
+      playCtx: null, nextPlay: 0, leftover: null, muted: false, voiceOn: true,
+      roomCode: "", name: "", listen: "en", mode: "create"
+    };
+
+    // Parse URL params
+    const params = new URLSearchParams(window.location.search);
+    state.mode = params.get("mode") || "create";
+    state.roomCode = (params.get("room") || params.get("code") || "").toUpperCase();
+    state.name = params.get("name") || localStorage.getItem("name") || "Player";
+    state.listen = params.get("listen") || localStorage.getItem("listen") || "en";
+
+    // Setup UI
+    const listenSelect = $("#listenSelect");
+    function populateLangs(langs, current) {
+      listenSelect.innerHTML = "";
+      for (const [code, label] of Object.entries(langs)) {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = label;
+        listenSelect.appendChild(opt);
+      }
+      listenSelect.value = current || "en";
+    }
+    populateLangs(FALLBACK_LANGS, state.listen);
+
+    // Copy link
+    $("#btnCopyRoom").onclick = async () => {
+      const shareUrl = window.location.origin + "/?room=" + state.roomCode;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showAlert("Room link copied to clipboard!");
+      } catch (e) {
+        showAlert("Room Code: " + state.roomCode);
+      }
+    };
+
+    function showAlert(txt) {
+      const banner = $("#alertBanner");
+      banner.textContent = txt;
+      banner.style.display = "block";
+      setTimeout(() => { banner.style.display = "none"; }, 3000);
+    }
+
+    // Back to intro navigation
+    function leaveAndGoIntro() {
+      cleanupAudioAndSocket();
+      window.location.href = "/";
+    }
+
+    $("#btnBackToIntro").onclick = leaveAndGoIntro;
+    window.addEventListener("popstate", () => {
+      leaveAndGoIntro();
+    });
+
+    function setConnStatus(txt, kind) {
+      $("#connStatusText").textContent = txt;
+      $("#connStatus").className = "connection-status " + (kind || "");
+    }
+
+    /* ---------- Mic Capture Worklet ---------- */
+    const WORKLET = `
+class PCM extends AudioWorkletProcessor {
+  constructor() { super(); this.ratio = sampleRate / 16000; this.carry = new Float32Array(0); this.t = 0; this.out = new Int16Array(1600); this.n = 0; }
+  process(inputs) {
+    const ch = inputs[0] && inputs[0][0];
+    if (!ch) return true;
+    const data = new Float32Array(this.carry.length + ch.length);
+    data.set(this.carry, 0); data.set(ch, this.carry.length);
+    let t = this.t;
+    while (t + 1 < data.length) {
+      const i = Math.floor(t), f = t - i;
+      let s = data[i] * (1 - f) + data[i + 1] * f;
+      s = Math.max(-1, Math.min(1, s));
+      this.out[this.n++] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      if (this.n === 1600) { const buf = this.out.buffer; this.port.postMessage(buf, [buf]); this.out = new Int16Array(1600); this.n = 0; }
+      t += this.ratio;
+    }
+    const used = Math.floor(t);
+    this.carry = data.slice(used); this.t = t - used;
+    return true;
+  }
+}
+registerProcessor("pcm-16k", PCM);`;
+
+    async function startMic() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        });
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET], { type: "application/javascript" })));
+        const src = ctx.createMediaStreamSource(stream);
+        const node = new AudioWorkletNode(ctx, "pcm-16k");
+        const analyser = ctx.createAnalyser(); analyser.fftSize = 512;
+        src.connect(node); src.connect(analyser);
+
+        node.port.onmessage = (e) => {
+          if (state.muted || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+          state.ws.send(e.data);
+        };
+
+        state.mic = { stream, ctx, node, analyser };
+        const buf = new Uint8Array(analyser.fftSize);
+
+        function drawMeter() {
+          if (!state.mic) return;
+          analyser.getByteTimeDomainData(buf);
+          let peak = 0; for (const v of buf) peak = Math.max(peak, Math.abs(v - 128));
+          const pct = state.muted ? 0 : Math.min(100, (peak / 128) * 160);
+          $("#micMeter").style.width = pct + "%";
+          requestAnimationFrame(drawMeter);
+        }
+        drawMeter();
+      } catch (err) {
+        console.warn("Mic not started or blocked:", err);
+        showAlert("Microphone permission required for voice comms.");
+      }
+    }
+
+    function cleanupAudioAndSocket() {
+      if (state.mic) {
+        try {
+          state.mic.stream.getTracks().forEach(t => t.stop());
+          state.mic.ctx.close();
+        } catch(e) {}
+        state.mic = null;
+      }
+      if (state.ws) {
+        state.ws.onclose = null;
+        try { state.ws.close(); } catch(e) {}
+        state.ws = null;
+      }
+      if (state.playCtx) {
+        try { state.playCtx.close(); } catch(e) {}
+        state.playCtx = null;
+      }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    /* ---------- WebSocket Client ---------- */
+    function initConnection() {
+      setConnStatus("Connecting...", "");
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      const qs = new URLSearchParams({
+        mode: state.mode,
+        name: state.name,
+        listen: state.listen,
+        room: state.roomCode
+      });
+
+      const ws = new WebSocket(`${proto}://${location.host}/ws?${qs}`);
+      ws.binaryType = "arraybuffer";
+      state.ws = ws;
+
+      ws.onopen = () => {
+        setConnStatus("Connected • Listening", "ok");
+      };
+
+      ws.onmessage = (e) => {
+        if (typeof e.data === "string") {
+          try {
+            onMessage(JSON.parse(e.data));
+          } catch(err) {
+            console.error("WS Parse err:", err);
+          }
+        } else {
+          playPCM(e.data);
+        }
+      };
+
+      ws.onclose = () => {
+        setConnStatus("Disconnected", "bad");
+        showAlert("Disconnected from squad room.");
+      };
+
+      // Init Playback Context on user interaction
+      state.playCtx = new (window.AudioContext || window.webkitAudioContext)();
+      state.playCtx.resume();
+    }
+
+    function onMessage(m) {
+      switch (m.type) {
+        case "fatal":
+          alert(m.message);
+          leaveAndGoIntro();
+          break;
+        case "hello":
+          state.me = m.you;
+          state.tts = m.tts;
+          state.langs = m.langs || FALLBACK_LANGS;
+          state.roomCode = m.room;
+          $("#roomCodeDisplay").textContent = m.room;
+          populateLangs(state.langs, state.listen);
+          setConnStatus(m.stt ? "Connected • Listening" : "Connected (STT offline)", m.stt ? "ok" : "bad");
+          // update browser history state
+          history.replaceState(null, "", "/room?room=" + m.room);
+          break;
+        case "roster":
+          state.roster = m.players || [];
+          renderRoster();
+          break;
+        case "activity":
+          flashPlayerTalking(m.id);
+          break;
+        case "partial":
+          $("#livePartialText").textContent = "Transcribing: " + m.text;
+          break;
+        case "final":
+          $("#livePartialText").textContent = "";
+          break;
+        case "callout":
+          showIncomingCallout(m);
+          break;
+        case "agent":
+          showVoiceagentDispatch(m);
+          break;
+        case "speak":
+          if (state.voiceOn) speakAloud(m.text, m.lang);
+          break;
+        case "error":
+          showAlert("Alert: " + m.message);
+          break;
+      }
+    }
+
+    function renderRoster() {
+      const list = $("#rosterList");
+      list.innerHTML = "";
+      $("#squadCount").textContent = `${state.roster.length} / 6`;
+
+      state.roster.forEach(p => {
+        const li = document.createElement("li");
+        li.className = "roster-item";
+        li.dataset.id = p.id;
+
+        const info = document.createElement("div");
+        info.className = "player-info";
+
+        const av = document.createElement("div");
+        av.className = "player-avatar";
+        av.style.borderColor = HUES[(p.color || 0) % HUES.length];
+        av.style.color = HUES[(p.color || 0) % HUES.length];
+        av.textContent = (p.name || "P").substring(0, 2).toUpperCase();
+
+        const nm = document.createElement("span");
+        nm.className = "player-name";
+        nm.textContent = p.name + (p.id === state.me ? " (you)" : "");
+
+        info.append(av, nm);
+
+        const langTag = document.createElement("span");
+        langTag.className = "player-tag";
+        langTag.textContent = (state.langs && state.langs[p.listen]) || p.listen;
+
+        li.append(info, langTag);
+        list.appendChild(li);
+      });
+    }
+
+    function flashPlayerTalking(id) {
+      const item = document.querySelector(`.roster-item[data-id="${id}"]`);
+      if (item) {
+        item.classList.add("talking");
+        setTimeout(() => item.classList.remove("talking"), 1200);
+      }
+    }
+
+    function showIncomingCallout(m) {
+      $("#stagePlaceholder").style.display = "none";
+      $("#activeCalloutContent").style.display = "block";
+
+      const pColor = HUES[(m.color || 0) % HUES.length];
+      $("#speakerSwatch").style.background = pColor;
+      $("#speakerSwatch").style.boxShadow = `0 0 10px ${pColor}`;
+      $("#speakerName").textContent = m.from || "Squad Member";
+      $("#translatedCallout").textContent = m.text;
+      $("#originalTranscript").textContent = m.original ? `Original: "${m.original}"` : "";
+      ["#translatedCallout", ".stage-speaker"].forEach((sel) => {
+        const el = $(sel);
+        el.classList.remove("pop");
+        void el.offsetWidth; // restart the entrance animation for every new callout
+        el.classList.add("pop");
+      });
+
+      const stageHud = $("#stageHud");
+      stageHud.classList.add("active-audio");
+      setTimeout(() => stageHud.classList.remove("active-audio"), 2000);
+
+      // Add to feed
+      addFeedItem({
+        from: m.from || "Squad",
+        text: m.text,
+        sub: m.original ? `Original: ${m.original}` : "",
+        isAgent: false,
+        color: pColor
+      });
+    }
+
+    function showVoiceagentDispatch(m) {
+      const box = $("#dispatchContent");
+      box.className = "dispatch-content";
+      box.textContent = m.text || "Voiceagent report completed.";
+      $("#dispatchTimestamp").textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      addFeedItem({
+        from: "Callout Voiceagent • " + (m.label || "Intel"),
+        text: m.text,
+        sub: "",
+        isAgent: true
+      });
+    }
+
+    function addFeedItem({ from, text, sub, isAgent, color }) {
+      const feed = $("#commsFeed");
+      const item = document.createElement("div");
+      item.className = "feed-item" + (isAgent ? " agent-item" : "");
+      if (color) item.style.setProperty("--accent", color);
+
+      const header = document.createElement("div");
+      header.className = "feed-item-header";
+
+      const spk = document.createElement("span");
+      spk.className = "feed-speaker";
+      spk.textContent = from;
+
+      const time = document.createElement("span");
+      time.className = "feed-time";
+      time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      header.append(spk, time);
+
+      const main = document.createElement("div");
+      main.className = "feed-callout";
+      main.textContent = text;
+
+      item.append(header, main);
+
+      if (sub) {
+        const subDiv = document.createElement("div");
+        subDiv.className = "feed-sub";
+        subDiv.textContent = sub;
+        item.append(subDiv);
+      }
+
+      feed.appendChild(item);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    /* ---------- Controls & Agent Triggers ---------- */
+    listenSelect.onchange = () => {
+      state.listen = listenSelect.value;
+      localStorage.setItem("listen", state.listen);
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: "set_listen", lang: state.listen }));
+      }
+    };
+
+    $("#muteCheck").onchange = (e) => {
+      state.muted = e.target.checked;
+    };
+
+    $("#voiceCheck").onchange = (e) => {
+      state.voiceOn = e.target.checked;
+      if (!state.voiceOn && window.speechSynthesis) window.speechSynthesis.cancel();
+    };
+
+    $("#composerForm").onsubmit = (e) => {
+      e.preventDefault();
+      const val = $("#composerInput").value.trim();
+      if (!val) return;
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: "text", text: val }));
+      }
+      $("#composerInput").value = "";
+    };
+
+    window.quickSend = function(txt) {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: "text", text: txt }));
+      }
+    };
+
+    $("#btnActionRecap").onclick = () => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        showAlert("Requesting tactical recap...");
+        state.ws.send(JSON.stringify({ type: "summarize" }));
+      }
+    };
+
+    $("#btnActionRepeat").onclick = () => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: "repeat" }));
+      }
+    };
+
+    $("#btnActionIntel").onclick = () => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        showAlert("Requesting tactical situation intel...");
+        state.ws.send(JSON.stringify({ type: "agent_ask", text: "Give a 1-sentence tactical game advice based on squad history." }));
+      }
+    };
+
+    /* ---------- Audio Playback (PCM / TTS) ---------- */
+    function speakAloud(text, lang) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = BCP[lang] || "en-US";
+      u.rate = 1.05;
+      window.speechSynthesis.speak(u);
+    }
+
+    function playPCM(buf) {
+      if (!state.playCtx) return;
+      const i16 = new Int16Array(buf);
+      const f32 = new Float32Array(i16.length);
+      for (let i = 0; i < i16.length; i++) f32[i] = i16[i] / 32768;
+
+      const audioBuf = state.playCtx.createBuffer(1, f32.length, 16000);
+      audioBuf.copyToChannel(f32, 0);
+
+      const src = state.playCtx.createBufferSource();
+      src.buffer = audioBuf;
+      src.connect(state.playCtx.destination);
+
+      const now = state.playCtx.currentTime;
+      const start = Math.max(now, state.nextPlay);
+      src.start(start);
+      state.nextPlay = start + audioBuf.duration;
+    }
+
+    // Auto-launch on load
+    window.addEventListener("DOMContentLoaded", async () => {
+      await startMic();
+      initConnection();
+    });
+  </script>
+</body>
+
+</html>
