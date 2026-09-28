@@ -631,137 +631,10 @@
       display: none;
     }
 
-    /* ============================================================
-       SLIDE 4: THANK YOU (Matching Image 1 & 2 Aesthetic)
-       ============================================================ */
-    .slide-thankyou {
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 100px 30px;
-      position: relative;
-    }
-
-    .thankyou-card {
-      background: rgba(9, 16, 25, 0.88);
-      border: 1px solid var(--border-mint);
-      border-radius: var(--radius-lg);
-      padding: 56px 64px;
-      backdrop-filter: blur(24px);
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 0 0 45px var(--mint-glow);
-      max-width: 720px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      z-index: 25;
-      animation: cardGlow 4s infinite alternate ease-in-out;
-    }
-
-    @keyframes cardGlow {
-      0% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px var(--mint-glow); }
-      100% { box-shadow: 0 24px 75px rgba(0, 0, 0, 0.8), 0 0 55px rgba(168, 85, 247, 0.4); }
-    }
-
-    .thankyou-badge {
-      font-family: var(--mono);
-      font-size: 11.5px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: var(--mint);
-      background: var(--mint-subtle);
-      border: 1px solid var(--border-mint);
-      padding: 6px 16px;
-      border-radius: 30px;
-      text-transform: uppercase;
-    }
-
-    .thankyou-title {
-      font-size: clamp(38px, 5.5vw, 68px);
-      font-weight: 300;
-      letter-spacing: -0.03em;
-      color: #ffffff;
-      line-height: 1.1;
-      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.9);
-    }
-
-    .thankyou-sub {
-      font-size: 16px;
-      color: var(--text-sub);
-      line-height: 1.6;
-      max-width: 520px;
-    }
-
-    .thankyou-actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      margin-top: 10px;
-    }
-
-    .btn-thankyou-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 24px;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, var(--mint), #00c8ff);
-      color: #04090e;
-      font-weight: 700;
-      font-size: 14px;
-      text-decoration: none;
-      box-shadow: 0 0 24px var(--mint-glow);
-      transition: all 0.2s;
-    }
-
-    .btn-thankyou-primary:hover {
-      opacity: 0.94;
-      transform: translateY(-2px);
-      box-shadow: 0 0 35px rgba(0, 255, 163, 0.65);
-    }
-
-    .btn-thankyou-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 22px;
-      border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      color: #ffffff;
-      font-weight: 600;
-      font-size: 14px;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .btn-thankyou-secondary:hover {
-      background: var(--violet-subtle);
-      border-color: var(--violet);
-      color: var(--violet);
-      transform: translateY(-2px);
-    }
-
-    .thankyou-footer {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 14px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
     @media (max-width: 900px) {
-      .slide-features, .slide-room, .slide-thankyou {
+      .slide-features, .slide-room {
         grid-template-columns: 1fr;
       }
-      .thankyou-card {
-        padding: 36px 24px;
-      }
-
       .stats-dock {
         width: 92%;
         grid-template-columns: repeat(2, 1fr);
@@ -962,43 +835,6 @@
       </div>
     </section>
 
-    <!-- SLIDE 4: SQUAD DEBRIEF & THANK YOU -->
-    <section class="slide slide-thankyou" id="thankyouSection">
-      <div class="thankyou-card">
-        <span class="thankyou-badge">SESSION COMPLETE // 004</span>
-        <h2 class="thankyou-title">Thank You, Operator</h2>
-        <p class="thankyou-sub">
-          Break the language barrier. Keep your callouts instantaneous, tactical, and clear across every region and every squad.
-        </p>
-
-        <div class="thankyou-actions">
-          <a class="btn-thankyou-primary" href="/room">
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Launch Tactical Room</span>
-          </a>
-          <a class="btn-thankyou-secondary" href="https://github.com/daarcbro/callout" target="_blank" rel="noopener">
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
-            <span>Star on GitHub</span>
-          </a>
-          <button class="btn-thankyou-secondary" id="btnBackToTop" type="button">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 13V3M3 8l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Back to Top</span>
-          </button>
-        </div>
-
-        <div class="thankyou-footer">
-          <div>Built for competitive squads worldwide. Universal speech &bull; Instant tactical intelligence.</div>
-          <div>AssemblyAI Universal-3.5 &bull; Groq LLaMA 3 &bull; Three.js GPU Shaders</div>
-        </div>
-      </div>
-    </section>
-
   </div>
 
   <!-- THREE.JS LIBRARY -->
@@ -1057,13 +893,6 @@
       roomCodeInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") $("#btnJoinRoom").click();
       });
-
-      const btnBackToTop = $("#btnBackToTop");
-      if (btnBackToTop) {
-        btnBackToTop.onclick = () => {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        };
-      }
 
       /* ============================================================
          PARTICLE ENGINE (Three.js, GPU-morphed)
@@ -1281,8 +1110,8 @@
         attribute vec3 aCol;
 
         uniform float uTime, uT, uPhase, uPx, uSize;
-        uniform vec3 uGalC, uOrbC, uGlobeC, uThankC;
-        uniform float uGalS, uOrbS, uGlobeS, uThankS;
+        uniform vec3 uGalC, uOrbC, uGlobeC;
+        uniform float uGalS, uOrbS, uGlobeS;
 
         varying vec3 vCol;
         varying float vAlpha;
@@ -1357,31 +1186,6 @@
           return uGlobeC + q * uGlobeS;
         }
 
-        /* D: celestial glowing halo aura around the thank you card */
-        vec3 shapeThankYou(out vec3 c, out float a, out float s){
-          float idx = aMeta.z;
-          float ang = idx * 6.2831853 + uTime * 0.14;
-          float ring = aMeta.w > 0.45 ? 1.0 : 0.0;
-          float rad = ring > 0.5 ? (2.1 + 0.9 * aRand.x) : (3.2 + 0.8 * aRand.x);
-          vec3 p;
-          if (aMeta.x > 2.0) {
-            float th = aRand.x * 6.2831853, ph = (aRand.y - 0.5) * 3.14159;
-            float r = 1.2 + 2.2 * aRand.z;
-            p = vec3(cos(ph) * cos(th), sin(ph) * 0.65, cos(ph) * sin(th)) * r;
-          } else {
-            p = vec3(cos(ang) * rad, (aRand.y - 0.5) * 0.32, sin(ang) * rad * 0.65);
-          }
-          p = rotX(0.48) * rotZ(-0.20) * rotY(uTime * 0.12) * p;
-          float spark = 0.75 + 0.25 * sin(uTime * 3.0 + idx * 40.0);
-          vec3 mint = vec3(0.0, 1.0, 0.64);
-          vec3 violet = vec3(0.66, 0.33, 0.97);
-          vec3 cyan = vec3(0.22, 0.74, 1.0);
-          c = mix(mint, (idx > 0.5 ? violet : cyan), 0.5 + 0.5 * sin(ang + uTime * 0.5));
-          a = 0.26 + 0.40 * spark;
-          s = 0.85 + 0.25 * spark;
-          return uThankC + p * uThankS;
-        }
-
         /* the river: a meandering channel between two shape centres, particles spiral along it */
         vec3 riverPt(vec3 a, vec3 b, float s, vec3 pu, vec3 pv, float lane, float laneAng, float sh){
           vec3 base = mix(a, b, s);
@@ -1399,12 +1203,9 @@
           if (uPhase < 0.5) {
             pA = shapeGalaxy(cA, aA, sA); pB = shapeOrb(cB, aB, sB);
             oA = uGalC; oB = uOrbC;
-          } else if (uPhase < 1.5) {
+          } else {
             pA = shapeOrb(cA, aA, sA); pB = shapeGlobe(cB, aB, sB);
             oA = uOrbC; oB = uGlobeC;
-          } else {
-            pA = shapeGlobe(cA, aA, sA); pB = shapeThankYou(cB, aB, sB);
-            oA = uGlobeC; oB = uThankC;
           }
 
           vec3 dir = normalize(oB - oA);
@@ -1452,11 +1253,8 @@
       const uniforms = {
         uTime: { value: 0 }, uT: { value: 0 }, uPhase: { value: 0 },
         uPx: { value: 1 }, uSize: { value: 0.026 },
-        uGalC: { value: new THREE.Vector3() },
-        uOrbC: { value: new THREE.Vector3(3, 0, 0) },
-        uGlobeC: { value: new THREE.Vector3(-3, 0, 0) },
-        uThankC: { value: new THREE.Vector3(0, 0, 0) },
-        uGalS: { value: 1 }, uOrbS: { value: 1 }, uGlobeS: { value: 1 }, uThankS: { value: 1 }
+        uGalC: { value: new THREE.Vector3() }, uOrbC: { value: new THREE.Vector3(3, 0, 0) }, uGlobeC: { value: new THREE.Vector3(-3, 0, 0) },
+        uGalS: { value: 1 }, uOrbS: { value: 1 }, uGlobeS: { value: 1 }
       };
       const material = new THREE.ShaderMaterial({
         uniforms, vertexShader, fragmentShader,
@@ -1467,8 +1265,8 @@
       scene.add(points);
 
       /* ---------- layout: pin each shape to its spot in the page ---------- */
-      const secIds = ["heroSection", "featuresSection", "roomSection", "thankyouSection"];
-      let tops = [0, 1, 2, 3];
+      const secIds = ["heroSection", "featuresSection", "roomSection"];
+      let tops = [0, 1, 2];
 
       function anchorOf(el, sec) {
         const wpp = (2 * Math.tan((FOV * Math.PI) / 360) * CAM_Z) / innerHeight;
@@ -1499,23 +1297,15 @@
         uniforms.uGlobeC.value.set(gl.x, gl.y, 0);
         uniforms.uGlobeS.value = (0.5 * gl.size * 0.98) / 1.32;
 
-        const tyEl = document.querySelector(".thankyou-card") || document.getElementById("thankyouSection");
-        const ty = anchorOf(tyEl, document.getElementById("thankyouSection"));
-        uniforms.uThankC.value.set(ty.x, ty.y, 0);
-        uniforms.uThankS.value = (0.5 * ty.size * 0.95) / 2.8;
-
-        tops = secIds.map((id) => {
-          const el = document.getElementById(id);
-          return el ? el.getBoundingClientRect().top + window.scrollY : 0;
-        });
+        tops = secIds.map((id) => document.getElementById(id).getBoundingClientRect().top + window.scrollY);
       }
 
       function targetProgress() {
         const y = Math.max(0, window.scrollY);
-        for (let i = 0; i < secIds.length - 1; i++) {
+        for (let i = 0; i < 2; i++) {
           if (y < tops[i + 1]) return i + clamp((y - tops[i]) / (tops[i + 1] - tops[i]), 0, 1);
         }
-        return secIds.length - 1;
+        return 2;
       }
 
       layout();
@@ -1548,15 +1338,15 @@
 
         // inertia on scroll so the river keeps flowing a moment after you stop
         smooth += (targetProgress() - smooth) * (1 - Math.exp(-dt * 5));
-        const s = clamp(smooth, 0, 3);
-        const phase = s >= 3 ? 2 : Math.floor(s);
+        const s = clamp(smooth, 0, 2);
+        const phase = s >= 2 ? 1 : Math.floor(s);
         const local = s - phase;
         // hold each shape for a beat at both ends of a transition
         const e = clamp((local - 0.1) / 0.8, 0, 1);
 
         uniforms.uTime.value = now * 0.001;
         uniforms.uPhase.value = phase;
-        uniforms.uT.value = s >= 3 ? 1 : e;
+        uniforms.uT.value = s >= 2 ? 1 : e;
         renderer.render(scene, camera);
       }
       requestAnimationFrame(animate);
