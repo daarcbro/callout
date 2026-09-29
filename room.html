@@ -1297,6 +1297,18 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="noiseGateSlider" style="margin-bottom: 0;">Noise Gate Filter</label>
+              <span id="noiseGateVal" style="font-family: var(--mono); font-size: 11px; color: var(--mint); font-weight: 600;">Optimal</span>
+            </div>
+            <input type="range" id="noiseGateSlider" min="0.005" max="0.05" step="0.005" value="0.015" style="width: 100%; accent-color: var(--mint); cursor: pointer;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 3px;">
+              <span>Low (Quiet room)</span>
+              <span>High (Noisy / Fan)</span>
+            </div>
+          </div>
+
           <div class="toggle-row">
             <span>Mute Microphone</span>
             <label class="toggle-switch">
@@ -1577,23 +1589,61 @@ registerProcessor("pcm-16k", PCM);`;
         const analyser = ctx.createAnalyser(); analyser.fftSize = 512;
         src.connect(node); src.connect(analyser);
 
+        let silenceCount = 0;
+        let isTransmitting = false;
+        const HANGOVER_FRAMES = 4; // keep streaming 400ms after volume drops so word endings aren't clipped
+
         node.port.onmessage = (e) => {
           if (state.muted || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
-          state.ws.send(e.data);
+
+          // Calculate RMS energy across the 1600 Int16 samples (100ms)
+          const i16 = new Int16Array(e.data);
+          let sumSq = 0;
+          const step = 2; // sample half for speed
+          for (let i = 0; i < i16.length; i += step) {
+            const s = i16[i] / 32768;
+            sumSq += s * s;
+          }
+          const rms = Math.sqrt(sumSq / (i16.length / step));
+          const threshold = state.noiseGateThreshold || 0.015;
+
+          // Update mic meter based on current RMS
+          const meter = $("#micMeter");
+          if (meter) {
+            const pct = Math.min(100, (rms / 0.12) * 100);
+            meter.style.width = (state.muted ? 0 : Math.max(2, pct)) + "%";
+            if (rms >= threshold && !state.muted) {
+              meter.style.background = "var(--mint)";
+              meter.style.boxShadow = "0 0 12px var(--mint-glow)";
+            } else {
+              meter.style.background = "rgba(255, 255, 255, 0.22)";
+              meter.style.boxShadow = "none";
+            }
+          }
+
+          if (rms >= threshold) {
+            // User is actively speaking above noise floor
+            isTransmitting = true;
+            silenceCount = 0;
+            state.ws.send(e.data);
+          } else if (isTransmitting) {
+            // User briefly paused or ending word: hold transmission during hangover
+            silenceCount++;
+            if (silenceCount <= HANGOVER_FRAMES) {
+              state.ws.send(e.data);
+            } else {
+              // Silence confirmed: send 1 zeroed silence buffer to close turn cleanly, then stop streaming!
+              isTransmitting = false;
+              const silence = new Int16Array(1600);
+              state.ws.send(silence.buffer);
+              const part = $("#livePartialText");
+              if (part) part.textContent = "";
+            }
+          }
+          // When silent and not in hangover: DO NOT SEND AUDIO (prevents background noise buffer!)
         };
 
         state.mic = { stream, ctx, node, analyser };
-        const buf = new Uint8Array(analyser.fftSize);
-
-        function drawMeter() {
-          if (!state.mic) return;
-          analyser.getByteTimeDomainData(buf);
-          let peak = 0; for (const v of buf) peak = Math.max(peak, Math.abs(v - 128));
-          const pct = state.muted ? 0 : Math.min(100, (peak / 128) * 160);
-          $("#micMeter").style.width = pct + "%";
-          requestAnimationFrame(drawMeter);
-        }
-        drawMeter();
       } catch (err) {
         console.warn("Mic not started or blocked:", err);
         showAlert("Microphone permission required for voice comms.");
@@ -1753,10 +1803,11 @@ registerProcessor("pcm-16k", PCM);`;
       $("#activeCalloutContent").style.display = "block";
 
       const pColor = HUES[(m.color || 0) % HUES.length];
+      const calloutText = m.translated || m.text || "Tactical Callout";
       $("#speakerSwatch").style.background = pColor;
       $("#speakerSwatch").style.boxShadow = `0 0 10px ${pColor}`;
       $("#speakerName").textContent = m.from || "Squad Member";
-      $("#translatedCallout").textContent = m.text;
+      $("#translatedCallout").textContent = calloutText;
       $("#originalTranscript").textContent = m.original ? `Original: "${m.original}"` : "";
       ["#translatedCallout", ".stage-speaker"].forEach((sel) => {
         const el = $(sel);
@@ -1772,7 +1823,7 @@ registerProcessor("pcm-16k", PCM);`;
       // Add to feed
       addFeedItem({
         from: m.from || "Squad",
-        text: m.text,
+        text: calloutText,
         sub: m.original ? `Original: ${m.original}` : "",
         isAgent: false,
         color: pColor
@@ -1837,6 +1888,24 @@ registerProcessor("pcm-16k", PCM);`;
         state.ws.send(JSON.stringify({ type: "set_listen", lang: state.listen }));
       }
     };
+
+    const gateSlider = $("#noiseGateSlider");
+    if (gateSlider) {
+      const updateGateLabel = (val) => {
+        const label = val <= 0.008 ? "Low (Quiet)" : val >= 0.035 ? "Aggressive" : "Optimal";
+        const valEl = $("#noiseGateVal");
+        if (valEl) valEl.textContent = label;
+      };
+      state.noiseGateThreshold = parseFloat(localStorage.getItem("noise_gate")) || 0.015;
+      gateSlider.value = state.noiseGateThreshold;
+      updateGateLabel(state.noiseGateThreshold);
+
+      gateSlider.oninput = (e) => {
+        state.noiseGateThreshold = parseFloat(e.target.value);
+        localStorage.setItem("noise_gate", state.noiseGateThreshold);
+        updateGateLabel(state.noiseGateThreshold);
+      };
+    }
 
     $("#muteCheck").onchange = (e) => {
       state.muted = e.target.checked;

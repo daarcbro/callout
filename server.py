@@ -488,9 +488,15 @@ async def push_audio(player: Player, data: bytes) -> None:
         player.stt_alive = False
 
 
+GHOST_NOISE_RE = re.compile(
+    r"^[\s\.\,\?\!\-\—\_]+$|^\[.*\]$|^(?:thank\s+you|you|um|uh|ah|yeah|shh|hmm|okay|ok)\.?$",
+    re.I
+)
+
+
 async def handle_turn(player: Player, ev) -> None:
     text = (ev.transcript or "").strip()
-    if not text:
+    if not text or GHOST_NOISE_RE.match(text):
         return
     if not ev.end_of_turn:
         await player.send({"type": "partial", "text": text})
@@ -560,8 +566,11 @@ async def utterance_worker(player: Player) -> None:
     """Process one player's utterances in order so callouts never arrive shuffled."""
     while True:
         text, lang = await player.utterances.get()
+        clean = (text or "").strip()
+        if not clean or GHOST_NOISE_RE.match(clean) or len(clean) < 2:
+            continue
         try:
-            await process_utterance(player, text, lang)
+            await process_utterance(player, clean, lang)
         except Exception as e:  # noqa: BLE001
             log.exception("[%s] pipeline error", player.name)
             await player.send({"type": "error", "where": "pipeline", "message": repr(e)})
