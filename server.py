@@ -324,6 +324,9 @@ class Player:
         self.last_stt_attempt = 0.0
         self.last_turn_order = -1
         self.last_activity = 0.0
+        self.last_partial_text = ""
+        self.last_partial_time = 0.0
+        self.last_partial_lang = None
         self.closed = False
 
     async def send(self, obj: dict) -> None:
@@ -444,8 +447,9 @@ async def start_stt(player: Player) -> bool:
         StreamingParameters(
             speech_model=STT_MODEL, sample_rate=16000, mode=STT_MODE,
             language_detection=True, keyterms_prompt=KEYTERMS,
+            min_turn_silence=350, max_turn_silence=700, min_end_of_turn_silence_when_confident=250,
         ),
-        StreamingParameters(speech_model=STT_MODEL, sample_rate=16000),
+        StreamingParameters(speech_model=STT_MODEL, sample_rate=16000, min_turn_silence=400),
     ]
     for i, params in enumerate(attempts):
         try:
@@ -494,17 +498,32 @@ GHOST_NOISE_RE = re.compile(
 )
 
 
+async def _partial_watchdog(player: Player, text: str, captured_time: float, lang: Optional[str]) -> None:
+    await asyncio.sleep(1.2)
+    if getattr(player, "last_partial_time", 0) == captured_time and getattr(player, "last_partial_text", "") == text and not player.closed:
+        log.info("[%s] silence watchdog finalizing turn: %s", player.name, text)
+        player.last_partial_text = ""
+        player.last_partial_time = 0.0
+        player.utterances.put_nowait((text, lang))
+
+
 async def handle_turn(player: Player, ev) -> None:
     text = (ev.transcript or "").strip()
     if not text or GHOST_NOISE_RE.match(text):
         return
     if not ev.end_of_turn:
+        player.last_partial_text = text
+        player.last_partial_time = time.monotonic()
+        player.last_partial_lang = getattr(ev, "language_code", None)
+        spawn(_partial_watchdog(player, text, player.last_partial_time, player.last_partial_lang))
         await player.send({"type": "partial", "text": text})
         now = time.monotonic()
         if now - player.last_activity > 0.6:
             player.last_activity = now
             await player.room.broadcast({"type": "activity", "id": player.id}, exclude=player.id)
         return
+    player.last_partial_text = ""
+    player.last_partial_time = 0.0
     order = getattr(ev, "turn_order", None)
     if order is not None and order == player.last_turn_order:
         return  # duplicate end-of-turn for the same turn

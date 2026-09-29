@@ -1622,25 +1622,23 @@ registerProcessor("pcm-16k", PCM);`;
           }
 
           if (rms >= threshold) {
-            // User is actively speaking above noise floor
+            // User is actively speaking above noise floor: stream real audio
             isTransmitting = true;
             silenceCount = 0;
             state.ws.send(e.data);
-          } else if (isTransmitting) {
+          } else if (isTransmitting && silenceCount < HANGOVER_FRAMES) {
             // User briefly paused or ending word: hold transmission during hangover
             silenceCount++;
-            if (silenceCount <= HANGOVER_FRAMES) {
-              state.ws.send(e.data);
-            } else {
-              // Silence confirmed: send 1 zeroed silence buffer to close turn cleanly, then stop streaming!
-              isTransmitting = false;
-              const silence = new Int16Array(1600);
-              state.ws.send(silence.buffer);
-              const part = $("#livePartialText");
-              if (part) part.textContent = "";
-            }
+            state.ws.send(e.data);
+          } else {
+            // Silent / pause: stream zeroed digital silence.
+            // Zeros advance AssemblyAI's internal timer so it fires end_of_turn in ~350ms,
+            // while containing 0.00dB energy so it NEVER hallucinates fan or room noise!
+            isTransmitting = false;
+            silenceCount++;
+            const silence = new Int16Array(1600);
+            state.ws.send(silence.buffer);
           }
-          // When silent and not in hangover: DO NOT SEND AUDIO (prevents background noise buffer!)
         };
 
         state.mic = { stream, ctx, node, analyser };
